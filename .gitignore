@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Editor / OS files
+*.swp
+.DS_Store
+
+# Logs
+*.log
+logs/
+nohup.out
+
+# Docker
+docker-data/
+*/docker-data/
+*.pid
+
+# Database files
+*.sqlite
+*.db
+
+# Cache
+.cache/
+.tmp/
+
+# Certs
+*.crt
+*.key
+
+# Build files
+dist/
+build/
+
+# JetBrains / VSCode
+.idea/
+.vscode/
+
+# Custom
+aiops-cache/
