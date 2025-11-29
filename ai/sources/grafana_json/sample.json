@@ -1,0 +1,6 @@
+{
+  "title": "ES Log Trends (aiops-logs-*)",
+  "datasource": "Elasticsearch",
+  "index": "aiops-logs-*",
+  "description": "Kibana/Grafana log trend visualization"
+}

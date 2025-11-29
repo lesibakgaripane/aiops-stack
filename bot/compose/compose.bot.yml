@@ -1,0 +1,43 @@
+name: aiops-bot
+
+services:
+  rasa-actions:
+    build:
+      context: ../actions
+      dockerfile: Dockerfile.actions
+    image: aiops-rasa-actions:latest
+    container_name: rasa-actions
+    restart: unless-stopped
+    env_file:
+      - ../secrets/.env.bot
+    environment:
+      - ORCH_URL=${ORCH_URL:-http://host.docker.internal:8088}
+    volumes:
+      - ../actions:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - bot_net
+    ports:
+      - "5055:5055"
+
+  rasa-runtime:
+    image: rasa/rasa:3.6.20-full
+    container_name: rasa-runtime
+    restart: unless-stopped
+    user: "0:0"
+    working_dir: /project
+    volumes:
+      - ../rasa:/project
+    entrypoint: ["rasa"]
+    command: ["run","--enable-api","--cors","*","--port","5005","--endpoints","/project/endpoints.yml"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - bot_net
+    ports:
+      - "5005:5005"
+
+networks:
+  bot_net:
+    driver: bridge

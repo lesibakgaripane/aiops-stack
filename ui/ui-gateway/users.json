@@ -1,0 +1,19 @@
+{
+  "users": [
+    {
+      "username": "admin",
+      "role": "ADMIN",
+      "password_hash": "$2b$12$uRAeNYoA6HBfATJwpI8F4u6JcwIIXELhPVuPtG1gxsfKMYyJmHWWi"
+    },
+    {
+      "username": "superuser",
+      "role": "SUPER_USER",
+      "password_hash": "$2b$12$8D2hXAWEnhAUdHFTYrS8COWyYDCUfdJyIP8AdZ68UbxEcITY2mPme"
+    },
+    {
+      "username": "enduser",
+      "role": "END_USER",
+      "password_hash": "$2b$12$DBXJbENe58P7Ff0Ku3.ATuGCf8nnPf/tluV8e7/1RrgUAj9EcZURi"
+    }
+  ]
+}

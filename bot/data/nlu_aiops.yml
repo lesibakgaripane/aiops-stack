@@ -1,0 +1,10 @@
+version: "3.1"
+
+nlu:
+- intent: ask_cpu_high_rb
+  examples: |
+    - What could cause high CPU on router RB?
+    - RB CPU is very high, what should I check?
+    - CPU is spiking on RB, why?
+    - Why would CPU be high on RB router?
+    - High CPU on RB, what is the reason?

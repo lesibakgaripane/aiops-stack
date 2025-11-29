@@ -1,0 +1,15 @@
+services:
+  aiops-status-api:
+    build: .
+    container_name: aiops-status-api
+    restart: unless-stopped
+    volumes:
+      - /home/lesiba/aiops-stack:/home/lesiba/aiops-stack:ro
+    networks:
+      - aiops-net
+    ports:
+      - "8090:8090"
+
+networks:
+  aiops-net:
+    external: true

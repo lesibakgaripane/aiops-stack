@@ -1,0 +1,12 @@
+version: "3.1"
+
+rules:
+- rule: Answer CPU high on RB with RAG
+  steps:
+  - intent: ask_cpu_high_rb
+  - action: action_aiops_rag_answer
+
+- rule: Answer general AIOps questions with RAG
+  steps:
+  - intent: ask_aiops_question
+  - action: action_aiops_rag_answer

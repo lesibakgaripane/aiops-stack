@@ -1,0 +1,23 @@
+version: "3.1"
+
+intents:
+  - greet
+  - goodbye
+  - ask_aiops_question
+  - ask_alert_risk
+  - ask_cpu_high_rb
+
+actions:
+  - action_aiops_rag_answer
+  - action_aiops_anomaly_score
+
+responses:
+  utter_greet:
+    - text: "Hi, I'm the NetSight AIOps assistant. How can I help you today?"
+
+  utter_goodbye:
+    - text: "Goodbye! If you need more troubleshooting later, just ask."
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

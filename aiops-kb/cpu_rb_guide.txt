@@ -1,0 +1,4 @@
+When CPU is high on router RB, first check interface utilization and error counters.
+Verify BGP sessions and route churn for RB. If RB is acting as a core or PE router,
+consider shifting traffic, enabling QoS, or moving noisy customers to another node.
+Also review recent config changes and software upgrades that might affect control-plane CPU.

@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  onos_collector:
+    build:
+      context: ./onos_collector
+      dockerfile: Dockerfile
+    container_name: onos_collector
+    restart: always
+    networks:
+      - aiops_network
+
+networks:
+  aiops_network:
+    external: true
+    name: aiops-stack_aiops-network

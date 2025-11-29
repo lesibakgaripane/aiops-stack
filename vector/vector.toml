@@ -1,0 +1,25 @@
+# Read logs from the Docker engine
+[sources.docker_logs]
+type = "docker_logs"
+
+# Optional: drop very noisy health checks
+# [sources.docker_logs.remap]
+# type = "remap"
+# inputs = ["docker_logs"]
+# source = '''
+#   if .label."com.docker.compose.service" == "prometheus" && .message == "GET /-/ready"
+#     then drop()
+# '''
+
+# Send to Elasticsearch
+[sinks.es]
+type   = "elasticsearch"
+inputs = ["docker_logs"]
+endpoint = "http://192.168.206.136:9200"
+index = "aiops-logs-%Y.%m.%d"
+mode = "bulk"
+compression = "none"
+bulk.index = "aiops-logs-%Y.%m.%d"
+# Optional auth if enabled on your ES:
+# auth.user = "elastic"
+# auth.password = "your_password"

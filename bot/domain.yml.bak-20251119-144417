@@ -1,0 +1,51 @@
+version: "3.1"
+
+intents:
+  - greet
+  - goodbye
+  - ask_aiops_question      # generic AIOps questions (RAG)
+  - ask_alert_risk          # anomaly / risk scoring
+
+entities:
+  - device_name
+  - metric
+  - alert_id
+
+slots:
+  device_name:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: device_name
+
+  metric:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: metric
+
+  alert_id:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: alert_id
+
+actions:
+  - action_aiops_rag_answer
+  - action_aiops_anomaly_score
+
+responses:
+  utter_greet:
+    - text: "Hi, I'm the NetSight AIOps assistant. Ask me about devices, alerts, or performance."
+
+  utter_goodbye:
+    - text: "Goodbye. If you need more AIOps insights, just call me again."
+
+  utter_ask_aiops_question:
+    - text: "Sure, what AIOps question do you have? For example: 'Why is CPU high on RB?'"
+
+  utter_ask_alert_risk:
+    - text: "Tell me the device and metric, e.g. 'How risky is 95% CPU on RB?'"

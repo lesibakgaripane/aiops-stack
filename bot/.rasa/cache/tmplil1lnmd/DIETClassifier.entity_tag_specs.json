@@ -1,0 +1,36 @@
+[
+  {
+    "tag_name": "entity",
+    "ids_to_tags": {
+      "1": "B-alert_id",
+      "2": "I-alert_id",
+      "3": "L-alert_id",
+      "4": "U-alert_id",
+      "5": "B-device_name",
+      "6": "I-device_name",
+      "7": "L-device_name",
+      "8": "U-device_name",
+      "9": "B-metric",
+      "10": "I-metric",
+      "11": "L-metric",
+      "12": "U-metric",
+      "0": "O"
+    },
+    "tags_to_ids": {
+      "B-alert_id": 1,
+      "I-alert_id": 2,
+      "L-alert_id": 3,
+      "U-alert_id": 4,
+      "B-device_name": 5,
+      "I-device_name": 6,
+      "L-device_name": 7,
+      "U-device_name": 8,
+      "B-metric": 9,
+      "I-metric": 10,
+      "L-metric": 11,
+      "U-metric": 12,
+      "O": 0
+    },
+    "num_tags": 13
+  }
+]

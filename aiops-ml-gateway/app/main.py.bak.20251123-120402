@@ -1,0 +1,53 @@
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import Any, Dict, Optional
+import httpx
+
+# Internal URLs (Docker network)
+RAG_URL = "http://aiops-rag-service:8000/query"
+ANOMALY_URL = "http://aiops-anomaly-service:8100/score"
+
+app = FastAPI(title="AIOps ML Gateway")
+
+class RAGQuery(BaseModel):
+    question: str
+    context: Optional[Dict[str, Any]] = None
+
+class AnomalyScoreRequest(BaseModel):
+    device: str
+    metric: str = "cpu_usage"
+    alert_id: Optional[str] = None
+    time_window: str = "15m"
+    value: Optional[float] = None  # numeric metric value (e.g., CPU %)
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok", "service": "aiops-ml-gateway"}
+
+
+@app.post("/ai/rag/query")
+async def rag_query(payload: RAGQuery):
+    """Proxy to the RAG brain (aiops-rag-service)."""
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            resp = await client.post(RAG_URL, json=payload.dict())
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPError as e:
+            detail = getattr(e.response, "text", str(e))
+            raise HTTPException(status_code=502, detail=f"RAG service error: {detail}")
+
+
+@app.post("/ai/anomaly/score")
+async def anomaly_score(payload: AnomalyScoreRequest):
+    """Proxy to the anomaly brain (aiops-anomaly-service)."""
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            # Forward ALL fields, including 'value'
+            resp = await client.post(ANOMALY_URL, json=payload.dict())
+            resp.raise_for_status()
+            return resp.json()
+        except httpx.HTTPError as e:
+            detail = getattr(e.response, "text", str(e))
+            raise HTTPException(status_code=502, detail=f"Anomaly service error: {detail}")

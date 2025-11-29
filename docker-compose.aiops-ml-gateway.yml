@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  aiops-ml-gateway:
+    build: ./aiops-ml-gateway
+    container_name: aiops-ml-gateway
+    restart: unless-stopped
+    networks:
+      - aiops-net
+    # No host port mapping needed; other containers use aiops-ml-gateway:9000
+
+networks:
+  aiops-net:
+    external: true

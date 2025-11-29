@@ -1,0 +1,21 @@
+version: "3.1"
+
+nlu:
+  - intent: greet
+    examples: |
+      - hi
+      - hello
+      - hey
+      - hi there
+
+  - intent: ask_netsight_rag
+    examples: |
+      - How to restart Prometheus safely?
+      - How do I restart Prometheus?
+      - Check Prometheus
+      - What is the status of Prometheus?
+      - Query NetSight RAG
+      - Ask NetSight for details
+      - Give me an AIOps answer
+      - Fetch metrics from the orchestrator
+      - I want a NetSight response

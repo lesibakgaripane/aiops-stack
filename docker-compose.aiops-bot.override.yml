@@ -1,0 +1,4 @@
+services:
+  aiops-rasa-actions:
+    environment:
+      CHATGPT_FALLBACK_THRESHOLD: "0.70"

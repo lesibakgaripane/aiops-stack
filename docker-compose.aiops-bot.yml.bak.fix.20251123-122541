@@ -1,0 +1,44 @@
+services:
+  aiops-chatgpt-bridge:
+    build: ./aiops-chatgpt-bridge
+    container_name: aiops-chatgpt-bridge
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=gpt-5.1
+      - OPENAI_TIMEOUT=25
+    ports:
+      - "9110:9100"
+  aiops-rasa:
+    image: rasa/rasa:3.6.0
+    container_name: aiops-rasa
+    restart: unless-stopped
+    ports:
+      - "5005:5005"
+    volumes:
+      - ./bot:/app
+    command: >
+      run --enable-api --cors "*" --debug
+    networks:
+      - aiops-stack_default
+
+  aiops-rasa-actions:
+    image: aiops-stack-aiops-rasa-actions
+    container_name: aiops-rasa-actions
+    restart: unless-stopped
+    ports:
+      - "5055:5055"
+    volumes:
+      - ./bot/actions:/app/actions
+    environment:
+      ML_GATEWAY_URL: "http://aiops-ml-gateway:9000"
+      RAG_SERVICE_URL: "http://aiops-rag-service:8000"
+      ANOMALY_SERVICE_URL: "http://aiops-anomaly-service:8100"
+      ORCHESTRATOR_URL: "http://ai_orchestrator:8088"
+    networks:
+      - aiops-stack_default
+
+networks:
+      CHATGPT_FALLBACK_THRESHOLD: 0.70
+  aiops-stack_default:
+    external: true
+    name: aiops-stack_default

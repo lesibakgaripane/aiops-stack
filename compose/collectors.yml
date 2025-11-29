@@ -1,0 +1,141 @@
+name: aiops-collectors
+
+networks:
+  aiops_core:
+    name: aiops_core
+    driver: bridge
+
+volumes:
+  mariadb_data:
+  librenms_data:
+  zabbix_data:
+  onos_data:
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MYSQL_USER: ${MARIADB_USER}
+      MYSQL_PASSWORD: ${MARIADB_PASSWORD}
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p${MARIADB_ROOT_PASSWORD} || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - aiops_core
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  # Creates databases for LibreNMS and Zabbix if not present
+  mariadb-init:
+    image: mariadb:10.11
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    entrypoint: ["/bin/sh","-c"]
+    command: >
+      '
+      mysql -hmariadb -uroot -p${MARIADB_ROOT_PASSWORD} -e
+      "CREATE DATABASE IF NOT EXISTS \`${MARIADB_DB_LIBRENMS}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+       CREATE DATABASE IF NOT EXISTS \`${MARIADB_DB_ZABBIX}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+       CREATE USER IF NOT EXISTS \`${MARIADB_USER}\`@\`%\` IDENTIFIED BY \"${MARIADB_PASSWORD}\";
+       GRANT ALL PRIVILEGES ON \`${MARIADB_DB_LIBRENMS}\`.* TO \`${MARIADB_USER}\`@\`%\`;
+       GRANT ALL PRIVILEGES ON \`${MARIADB_DB_ZABBIX}\`.* TO \`${MARIADB_USER}\`@\`%\`;
+       FLUSH PRIVILEGES;"
+      '
+    networks:
+      - aiops_core
+
+  librenms:
+    image: librenms/librenms:latest
+    container_name: librenms
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      DB_HOST: mariadb
+      DB_NAME: ${MARIADB_DB_LIBRENMS}
+      DB_USER: ${MARIADB_USER}
+      DB_PASSWORD: ${MARIADB_PASSWORD}
+      APP_KEY: base64:GENERATE_ON_FIRST_RUN
+      PUID: ${LIBRENMS_PUID}
+      PGID: ${LIBRENMS_PGID}
+      TZ: ${LIBRENMS_TIMEZONE}
+    depends_on:
+      mariadb-init:
+        condition: service_completed_successfully
+    ports:
+      - "8000:8000"   # Web
+      - "514:514/udp" # Syslog if enabled
+    networks:
+      - aiops_core
+    volumes:
+      - librenms_data:/data
+
+  zabbix-server:
+    image: zabbix/zabbix-server-mysql:alpine-6.0-latest
+    container_name: zabbix-server
+    restart: unless-stopped
+    environment:
+      DB_SERVER_HOST: mariadb
+      MYSQL_DATABASE: ${MARIADB_DB_ZABBIX}
+      MYSQL_USER: ${MARIADB_USER}
+      MYSQL_PASSWORD: ${MARIADB_PASSWORD}
+      TZ: ${ZBX_TIMEZONE}
+    depends_on:
+      mariadb-init:
+        condition: service_completed_successfully
+    ports:
+      - "10051:10051"  # Zabbix server
+    networks:
+      - aiops_core
+    volumes:
+      - zabbix_data:/var/lib/zabbix
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-mysql:alpine-6.0-latest
+    container_name: zabbix-web
+    restart: unless-stopped
+    environment:
+      DB_SERVER_HOST: mariadb
+      MYSQL_DATABASE: ${MARIADB_DB_ZABBIX}
+      MYSQL_USER: ${MARIADB_USER}
+      MYSQL_PASSWORD: ${MARIADB_PASSWORD}
+      ZBX_SERVER_HOST: zabbix-server
+      PHP_TZ: ${ZBX_TIMEZONE}
+    depends_on:
+      zabbix-server:
+        condition: service_started
+    ports:
+      - "8081:8080" # Web UI
+    networks:
+      - aiops_core
+
+  onos:
+    image: onosproject/onos:2.7.0
+    container_name: onos
+    restart: unless-stopped
+    environment:
+      ONOS_APPS: ${ONOS_APPS}
+    networks:
+      - aiops_core
+    ports:
+      - "6653:6653"  # OpenFlow
+      - "8101:8101"  # CLI (ssh)
+      - "8181:8181"  # Web UI
+    volumes:
+      - onos_data:/root/onos
+
+# Usage:
+#   docker compose -f compose/collectors.yml --env-file .env up -d
+# UIs:
+#   LibreNMS: http://<host>:8000
+#   Zabbix:   http://<host>:8081
+#   ONOS:     https://<host>:8181 (user/pass: onos/rocks by default)

@@ -1,0 +1,22 @@
+version: "3.1"
+
+rules:
+  - rule: Greet user
+    steps:
+      - intent: greet
+      - action: utter_greet
+
+  - rule: Say goodbye
+    steps:
+      - intent: goodbye
+      - action: utter_goodbye
+
+  - rule: Handle AIOps RAG question
+    steps:
+      - intent: ask_aiops_question
+      - action: action_aiops_rag_answer
+
+  - rule: Handle alert risk question
+    steps:
+      - intent: ask_alert_risk
+      - action: action_aiops_anomaly_score

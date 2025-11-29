@@ -1,0 +1,16 @@
+FROM rasa/rasa-sdk:3.6.2
+
+# become root so we can write to /opt/venv
+USER root
+
+# install requests into the existing virtualenv
+RUN pip install --no-cache-dir requests
+
+# default runtime settings
+WORKDIR /app
+
+# override the base ENTRYPOINT so we do NOT use ./entrypoint.sh
+ENTRYPOINT ["python","-m","rasa_sdk"]
+
+# default arguments
+CMD ["--actions","actions","--port","5055"]

@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # --- Elasticsearch Data Store ---
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.18
+    container_name: elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - aiops_network
+
+  # --- Kibana Visualization ---
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.18
+    container_name: kibana
+    restart: always
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - aiops_network
+    depends_on:
+      - elasticsearch
+
+  # --- Prometheus Metrics Collection ---
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: prometheus
+    restart: always
+    volumes:
+      - ./prometheus_config:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.html=/usr/share/prometheus/console'
+    ports:
+      - "9090:9090"
+    networks:
+      - aiops_network
+
+networks:
+  aiops_network:
+    external: true
+    name: aiops-stack_aiops-network
+
+volumes:
+  elasticsearch_data:
+  prometheus_data:

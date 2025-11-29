@@ -1,0 +1,47 @@
+apiVersion: 1
+
+datasources:
+  # --- Prometheus Data Source ---
+- name: Prometheus
+  type: prometheus
+  access: proxy
+  orgId: 1
+  url: http://prometheus:9090
+  isDefault: true
+  version: 1
+  editable: true
+
+  # --- Elasticsearch Data Source (for Logs/Metrics) ---
+- name: Elasticsearch Logs
+  type: elasticsearch
+  access: proxy
+  orgId: 1
+  url: http://elasticsearch:9200
+  jsonData:
+    database: "[aiops-logs-]YYYY.MM.DD"
+    timeInterval: "5s"
+    esVersion: 710
+  version: 1
+  editable: true
+
+  # --- MySQL Data Source (for Zabbix/LibreNMS Metadata) ---
+- name: MySQL_MariaDB (Zabbix)
+  type: mysql
+  access: proxy
+  orgId: 1
+  url: mariadb:3306
+  database: zabbix
+  user: root
+  secureJsonData:
+    password: password
+  version: 1
+  editable: true
+
+  # --- FastAPI JSON Endpoint Data Source (requires 'simpod-json-datasource' plugin) ---
+- name: FastAPI (ONOS Data)
+  type: simpod-json-datasource 
+  access: proxy
+  orgId: 1
+  url: http://fastapi:8080 
+  version: 1
+  editable: true

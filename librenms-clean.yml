@@ -1,0 +1,40 @@
+services:
+  db:
+    image: mariadb:10.11
+    container_name: librenms-db
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: librenms
+      MYSQL_USER: librenms
+      MYSQL_PASSWORD: password
+    volumes:
+      - librenms_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -ppassword --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  librenms:
+    image: librenms/librenms:latest
+    container_name: librenms-clean
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      TZ: Africa/Johannesburg
+      DB_HOST: librenms-db
+      DB_PORT: 3306
+      DB_DATABASE: librenms
+      DB_USERNAME: librenms
+      DB_PASSWORD: password
+    ports:
+      - "8000:8000"
+    volumes:
+      - librenms_app_data:/data
+    restart: unless-stopped
+
+volumes:
+  librenms_db_data:
+  librenms_app_data:

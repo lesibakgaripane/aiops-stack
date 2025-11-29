@@ -1,0 +1,70 @@
+name: aiops-rag
+
+networks:
+  aiops_net:
+    driver: bridge
+
+volumes:
+  vectordb:
+  ai_logs:
+
+services:
+  pgvector:
+    image: pgvector/pgvector:pg16
+    container_name: ai_pgvector
+    restart: unless-stopped
+    env_file:
+      - ../secrets/.env.pg
+    environment:
+      - POSTGRES_USER=aiops
+      - POSTGRES_DB=aiops_rag
+    ports:
+      - "5433:5432"
+    volumes:
+      - vectordb:/var/lib/postgresql/data
+    networks: [aiops_net]
+
+  ai_embedder:
+    build:
+      context: ../embedder
+      dockerfile: Dockerfile
+    container_name: ai_embedder
+    restart: "no"
+    env_file:
+      - ../secrets/.env.pg
+      - ../secrets/.env.ai
+    environment:
+      - POSTGRES_HOST=ai_pgvector
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=aiops
+      - POSTGRES_DB=aiops_rag
+      - EMBEDDING_MODEL=BAAI/bge-small-en-v1.5
+    volumes:
+      - ../sources:/ingest:ro
+      - ai_logs:/app/logs
+    depends_on: [pgvector]
+    networks: [aiops_net]
+    command: ["python","/app/ingest.py"]
+
+  ai_orchestrator:
+    build:
+      context: ../orchestrator
+      dockerfile: Dockerfile
+    container_name: ai_orchestrator
+    restart: unless-stopped
+    env_file:
+      - ../secrets/.env.pg
+      - ../secrets/.env.ai
+    environment:
+      - POSTGRES_HOST=ai_pgvector
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=aiops
+      - POSTGRES_DB=aiops_rag
+      - RAG_TOPK=5
+      - GENERATION_MODEL=openai:gpt-4o-mini
+    ports:
+      - "8088:8088"
+    volumes:
+      - ai_logs:/app/logs
+    depends_on: [pgvector]
+    networks: [aiops_net]

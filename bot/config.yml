@@ -1,0 +1,15 @@
+language: "en"
+version: "3.1"
+
+pipeline:
+- name: WhitespaceTokenizer
+- name: RegexFeaturizer
+- name: LexicalSyntacticFeaturizer
+- name: CountVectorsFeaturizer
+- name: DIETClassifier
+  epochs: 50
+- name: EntitySynonymMapper
+
+policies:
+- name: RulePolicy
+assistant_id: 20251116-233224-isochoric-setter

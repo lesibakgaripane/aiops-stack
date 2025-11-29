@@ -1,0 +1,8 @@
+services:
+  aiops-ml-gateway:
+    networks:
+      - aiops-stack_default
+
+networks:
+  aiops-stack_default:
+    external: true

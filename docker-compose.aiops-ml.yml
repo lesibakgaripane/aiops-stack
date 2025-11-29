@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  aiops-rag-db:
+    image: qdrant/qdrant:latest
+    container_name: aiops-rag-db
+    restart: unless-stopped
+    networks:
+      - aiops-net
+    volumes:
+      - ./aiops-kb:/app/kb:ro
+      - ./aiops-kb-qdrant:/qdrant/storage
+    ports:
+      - "6333:6333"
+
+  aiops-rag-service:
+    build: ./aiops-rag-service
+    container_name: aiops-rag-service
+    restart: unless-stopped
+    networks:
+      - aiops-net
+    environment:
+      - VECTORDB_HOST=aiops-rag-db
+      - VECTORDB_PORT=6333
+      - RAG_COLLECTION=aiops_kb
+      - KB_PATH=/app/kb
+    volumes:
+      - ./aiops-kb:/app/kb:ro
+    depends_on:
+      - aiops-rag-db
+
+  aiops-anomaly-service:
+    build: ./aiops-anomaly-service
+    container_name: aiops-anomaly-service
+    restart: unless-stopped
+    networks:
+      - aiops-net
+    environment:
+      - PROM_URL=http://prometheus:9090
+      - MODEL_PATH=/app/models/anomaly_model.joblib
+    volumes:
+      - ./aiops-ml-models:/app/models
+
+networks:
+  aiops-net:
+    external: true

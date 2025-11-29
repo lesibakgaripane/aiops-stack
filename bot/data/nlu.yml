@@ -1,0 +1,33 @@
+version: "3.1"
+
+nlu:
+  - intent: greet
+    examples: |
+      - hi
+      - hello
+      - hey
+      - good morning
+      - good afternoon
+
+  - intent: goodbye
+    examples: |
+      - bye
+      - goodbye
+      - see you
+      - talk to you later
+
+  - intent: ask_aiops_question
+    examples: |
+      - Why is CPU high on [RB](device_name)?
+      - What is causing high [cpu_usage](metric) on [RB](device_name)?
+      - Explain the issue on device [RB](device_name)
+      - Give me context for alert [ALERT-123](alert_id)
+      - What is happening with device [CORE-R1](device_name)?
+
+  - intent: ask_alert_risk
+    examples: |
+      - How risky is 95% [cpu_usage](metric) on [RB](device_name)?
+      - What is the anomaly risk for [RB](device_name) when CPU is at 95%?
+      - Is 40% [cpu_usage](metric) on [RB](device_name) a problem?
+      - Can you score the risk for alert [ALERT-123](alert_id) on [RB](device_name)?
+      - Is this alert on [CORE-R1](device_name) critical?

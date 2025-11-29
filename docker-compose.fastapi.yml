@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  fastapi_heartbeat:
+    build:
+      context: ./fastapi_service
+      dockerfile: Dockerfile
+    container_name: fastapi_heartbeat
+    restart: unless-stopped
+    ports:
+      - "8080:80"  # Map host port 8080 to container port 80
+    networks:
+      - aiops_network
+
+networks:
+  aiops_network:
+    external: true
+    name: aiops-stack_aiops-network

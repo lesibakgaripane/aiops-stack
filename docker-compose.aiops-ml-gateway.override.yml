@@ -1,0 +1,5 @@
+services:
+  aiops-ml-gateway:
+    environment:
+      - CHATGPT_BRIDGE_URL=http://aiops-chatgpt-bridge:9100/respond
+      - CHATGPT_FALLBACK_THRESHOLD=0.70
