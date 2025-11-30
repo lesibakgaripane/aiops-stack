@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cybersecurity Awareness Center</title>
+</head>
+<body>
+  <h1>Cybersecurity Awareness Center</h1>
+
+  <p>Welcome, <span id="user-name">user</span>.</p>
+
+  <nav>
+    <a href="home.html">Home</a> |
+    <a href="aiops.html">AIOps Operations Center</a> |
+    <a href="awareness.html">Cybersecurity Awareness</a> |
+    <a href="ecosystem.html">Ecosystem Health</a>
+  </nav>
+
+  <hr />
+
+  <h2>Awareness Dashboard (MVP)</h2>
+  <p>This view shows a simple awareness summary coming from the ui-gateway.</p>
+
+  <h3>Summary (from API)</h3>
+  <p><strong>Status:</strong> <span id="aw-status">Loading...</span></p>
+  <p><strong>Message:</strong> <span id="aw-msg">Loading...</span></p>
+
+  <h4>Campaigns</h4>
+  <ul id="aw-campaigns">
+    <li>Loading...</li>
+  </ul>
+
+  <button id="logout-btn">Logout</button>
+
+  <script src="auth.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Enforce authentication
+      window.aiopsAuth.requireAuth("login.html");
+
+      const auth = window.aiopsAuth.getAuth();
+      const userNameEl = document.getElementById("user-name");
+      if (auth && auth.username) {
+        userNameEl.textContent = auth.username;
+      }
+
+      const logoutBtn = document.getElementById("logout-btn");
+      logoutBtn.addEventListener("click", function () {
+        window.aiopsAuth.clearAuth();
+        window.location.href = "login.html";
+      });
+
+      const statusEl = document.getElementById("aw-status");
+      const msgEl = document.getElementById("aw-msg");
+      const campaignsEl = document.getElementById("aw-campaigns");
+
+      fetch("/awareness/summary")
+        .then(resp => {
+          if (!resp.ok) {
+            throw new Error("HTTP " + resp.status);
+          }
+          return resp.json();
+        })
+        .then(data => {
+          statusEl.textContent = data.status || "unknown";
+          msgEl.textContent = data.message || "No message";
+
+          const campaigns = data.campaigns || [];
+          campaignsEl.innerHTML = "";
+          if (campaigns.length === 0) {
+            const li = document.createElement("li");
+            li.textContent = "No campaigns reported.";
+            campaignsEl.appendChild(li);
+            return;
+          }
+
+          for (const c of campaigns) {
+            const li = document.createElement("li");
+            li.textContent = c;
+            campaignsEl.appendChild(li);
+          }
+        })
+        .catch(err => {
+          console.error("Awareness summary error:", err);
+          statusEl.textContent = "ERROR";
+          msgEl.textContent = "Failed to fetch awareness summary.";
+          campaignsEl.innerHTML = "";
+          const li = document.createElement("li");
+          li.textContent = "Error fetching awareness summary: " + err;
+          campaignsEl.appendChild(li);
+        });
+    });
+  </script>
+
+  <script src="chat-widget.js"></script>
+</body>
+</html>
