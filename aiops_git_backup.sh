@@ -10,7 +10,7 @@ echo "=============================="
 # Optional commit message from first argument, otherwise auto-generate
 MSG="$1"
 if [ -z "$MSG" ]; then
-  MSG="AIOps auto-backup $(date +%F %T)"
+  MSG="AIOps auto-backup $(date '+%F %H:%M:%S')"
 fi
 
 # Show current branch and remote
