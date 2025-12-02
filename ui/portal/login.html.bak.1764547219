@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AIOps Unified Portal – Sign in</title>
+  <link rel="stylesheet" href="portal.css" />
+</head>
+<body>
+  <div class="auth-layout">
+    <!-- Left: ecosystem storytelling / slideshow -->
+    <section class="auth-hero">
+      <div class="auth-hero-inner">
+        <h1>AIOps Unified Portal</h1>
+        <p class="auth-tagline">
+          One intelligent gateway for infrastructure observability and cybersecurity awareness.
+        </p>
+
+        <ul class="auth-slides">
+          <li>Visualise your AIOps ecosystem – telemetry, anomalies, and health in a single experience.</li>
+          <li>Engage every employee with interactive cybersecurity awareness – quizzes, micro-lessons, and simulations.</li>
+          <li>Adapt the interface per role – admins, operators, and end-users each see what matters to them.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Right: login form -->
+    <section class="portal-card auth-card">
+      <div class="auth-header">
+        <h2>Sign in to your portal</h2>
+        <p class="helper-text">
+          Use your provisioned credentials. Once signed in, the portal will show content aligned to your role.
+        </p>
+      </div>
+
+      <form onsubmit="doLogin(event)">
+        <label class="field">
+          <span>Username</span>
+          <input id="username" name="username" type="text" autocomplete="username" required />
+        </label>
+
+        <label class="field">
+          <span>Password</span>
+          <input id="password" name="password" type="password" autocomplete="current-password" required />
+        </label>
+
+        <button type="submit" class="primary-btn">Sign in</button>
+        <p id="error" class="error-text"></p>
+      </form>
+
+      <div class="helper-text" style="margin-top: 1rem; font-size: 0.85rem;">
+        <strong>Lab roles:</strong>
+        <ul>
+          <li><code>admin / password</code> → Administrator</li>
+          <li><code>operator / password</code> → Operator (superuser)</li>
+          <li><code>any-other-name / password</code> → End-user (awareness only)</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="portal-ui.js"></script>
+  <script src="chat-widget.js"></script>
+  <script>
+    async function doLogin(event) {
+      event.preventDefault();
+      const u = document.getElementById("username").value.trim();
+      const p = document.getElementById("password").value;
+      const errorEl = document.getElementById("error");
+      errorEl.textContent = "";
+
+      if (!u || !p) {
+        errorEl.textContent = "Please provide username and password.";
+        return;
+      }
+
+      const params = new URLSearchParams();
+      params.append("username", u);
+      params.append("password", p);
+
+      try {
+        // Go via Nginx → ui-gateway
+        const resp = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: params.toString()
+        });
+
+        if (!resp.ok) {
+          errorEl.textContent = "Invalid credentials or login failed.";
+          return;
+        }
+
+        const data = await resp.json();
+        if (!data.access_token) {
+          errorEl.textContent = "No token in response.";
+          return;
+        }
+
+        // Base role from backend (admin / user)
+        let role = data.role || "user";
+
+        // Lab mapping to 3 classes:
+        //  - admin/password    → admin
+        //  - operator/password → superuser (operator)
+        //  - others/password   → user (end-user)
+        const uname = u.toLowerCase();
+        if (uname === "admin") {
+          role = "admin";
+        } else if (uname === "operator") {
+          role = "superuser";
+        } else {
+          role = "user";
+        }
+
+        const authPayload = {
+          access_token: data.access_token,
+          token_type: data.token_type || "bearer",
+          username: data.username || u,
+          role: role
+        };
+
+        // Save to our helper + role for nav
+        try {
+          window.aiopsAuth.saveAuth(authPayload);
+          localStorage.setItem("role", authPayload.role);
+        } catch (e) {
+          console.error("Failed to save auth:", e);
+        }
+
+        // ----------------------------
+        // Role-based redirect:
+        //  admin      → AIOps Operations Center
+        //  superuser  → AIOps Operations Center (operator console)
+        //  end-user   → Cybersecurity Awareness
+        // ----------------------------
+        let redirect = "home.html";
+        if (role === "admin") {
+          redirect = "aiops.html";
+        } else if (role === "superuser") {
+          redirect = "aiops.html";
+        } else if (role === "user") {
+          redirect = "awareness.html";
+        }
+
+        window.location.href = redirect;
+      } catch (err) {
+        console.error("Login error:", err);
+        errorEl.textContent = "Unexpected error. Please try again.";
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,14 +1,40 @@
-from fastapi import FastAPI, Form, HTTPException
+from fastapi import FastAPI, Form, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
 import os
-import secrets
+from datetime import datetime, timedelta
+
+import jwt  # PyJWT
+
+# --------------------------------------------------
+# Roles
+# --------------------------------------------------
+USER_ROLES = {
+    "admin": "admin",
+    "superuser": "superuser",  # operator
+    "user": "user",            # end-user / awareness only
+}
+
+# --------------------------------------------------
+# Config
+# --------------------------------------------------
+JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "CHANGE_ME_IN_PROD")
+JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "password")
+
+UI_GATEWAY_PORT = int(os.environ.get("UI_GATEWAY_PORT", "8089"))
+AI_ORCHESTRATOR_PORT = int(os.environ.get("AI_ORCHESTRATOR_PORT", "9088"))
+FASTAPI_HEARTBEAT_PORT = int(os.environ.get("FASTAPI_HEARTBEAT_PORT", "8080"))
+AIOPS_RAG_PORT = int(os.environ.get("AIOPS_RAG_PORT", "8000"))
+AIOPS_ANOMALY_PORT = int(os.environ.get("AIOPS_ANOMALY_PORT", "8100"))
 
 # --------------------------------------------------
 # FastAPI app
 # --------------------------------------------------
-
 app = FastAPI(
     title="AIOps UI Gateway",
     docs_url=None,
@@ -16,13 +42,9 @@ app = FastAPI(
     openapi_url=None,
 )
 
-# --------------------------------------------------
-# CORS
-# --------------------------------------------------
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten for production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,61 +53,137 @@ app.add_middleware(
 # --------------------------------------------------
 # Models
 # --------------------------------------------------
-
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     username: str
+    role: str
 
-class ServiceInfo(BaseModel):
+class MeResponse(BaseModel):
+    username: str
+    role: str
+
+class EcosystemService(BaseModel):
     name: str
     port: int
 
 class EcosystemStatus(BaseModel):
-    services: List[ServiceInfo]
+    services: List[EcosystemService]
+
+class AwarenessSummary(BaseModel):
+    status: str
+    message: str
+    campaigns: List[str]
+
+class AIOpsSummary(BaseModel):
+    status: str
+    message: str
+    alerts: List[str]
 
 # --------------------------------------------------
-# Routes
+# Helpers
 # --------------------------------------------------
+def create_access_token(username: str, role: str) -> str:
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    payload = {"sub": username, "role": role, "exp": expire}
+    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
-@app.get("/health")
-def health():
-    return {"status": "ok", "service": "aiops-ui-gateway"}
+def decode_token(token: str):
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        return payload
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-@app.get("/status/ecosystem/status", response_model=EcosystemStatus)
-def ecosystem_status():
-    services = [
-        {"name": "ui-gateway", "port": int(os.getenv("UI_GATEWAY_PORT", "8089"))},
-        {"name": "ai_orchestrator", "port": int(os.getenv("AI_ORCH_PORT", "9088"))},
-        {"name": "fastapi_heartbeat", "port": int(os.getenv("FASTAPI_HEARTBEAT_PORT", "8080"))},
-        {"name": "aiops-rag-service", "port": int(os.getenv("AIOPS_RAG_PORT", "8000"))},
-        {"name": "aiops-anomaly-service", "port": int(os.getenv("AIOPS_ANOMALY_PORT", "8100"))},
-    ]
-    return {"services": services}
-
-@app.post("/api/auth/login", response_model=TokenResponse)
-def login(username: str = Form(...), password: str = Form(...)):
-    """
-    POST /api/auth/login
-    Content-Type: application/x-www-form-urlencoded
-    body: username=admin&password=password (by default)
-    """
-    admin_user = os.getenv("AIOPS_UI_ADMIN_USER", "admin")
-    admin_pass = os.getenv("AIOPS_UI_ADMIN_PASSWORD", "password")
-
-    if username != admin_user or password != admin_pass:
+# --------------------------------------------------
+# Auth endpoints
+# --------------------------------------------------
+@app.post("/auth/login", response_model=TokenResponse)
+def login(
+    username: str = Form(...),
+    password: str = Form(...),
+):
+    # 1) Admin (full access)
+    if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+        role = USER_ROLES["admin"]
+    # 2) Operator (superuser) - lab convention
+    elif username.lower() == "operator" and password == ADMIN_PASSWORD:
+        role = USER_ROLES["superuser"]
+    # 3) Any other username with lab password -> end-user
+    elif password == ADMIN_PASSWORD:
+        role = USER_ROLES["user"]
+    else:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # Just generate a random token string – script only cares that it exists
-    token = secrets.token_hex(32)
-
+    token = create_access_token(username=username, role=role)
     return TokenResponse(
         access_token=token,
         token_type="bearer",
         username=username,
+        role=role,
     )
 
-if __name__ == "__main__":
-    import uvicorn
-    port = int(os.getenv("UI_GATEWAY_PORT", "8089"))
-    uvicorn.run("app:app", host="0.0.0.0", port=port)
+@app.get("/api/auth/me", response_model=MeResponse)
+def get_me(authorization: str = Header(None)):
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+
+    token = authorization.split()[1]
+    payload = decode_token(token)
+    username = payload.get("sub")
+    role = payload.get("role", USER_ROLES["user"])
+
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token payload")
+
+    return MeResponse(username=username, role=role)
+
+# Legacy alias to keep older UI pieces happy
+@app.get("/auth/me", response_model=MeResponse)
+def get_me_legacy(authorization: str = Header(None)):
+    return get_me(authorization=authorization)
+
+# --------------------------------------------------
+# Ecosystem status
+# --------------------------------------------------
+@app.get("/status/ecosystem/status", response_model=EcosystemStatus)
+def ecosystem_status():
+    services = [
+        EcosystemService(name="ui-gateway", port=UI_GATEWAY_PORT),
+        EcosystemService(name="ai_orchestrator", port=AI_ORCHESTRATOR_PORT),
+        EcosystemService(name="fastapi_heartbeat", port=FASTAPI_HEARTBEAT_PORT),
+        EcosystemService(name="aiops-rag-service", port=AIOPS_RAG_PORT),
+        EcosystemService(name="aiops-anomaly-service", port=AIOPS_ANOMALY_PORT),
+    ]
+    return EcosystemStatus(services=services)
+
+# --------------------------------------------------
+# Awareness & AIOps summaries
+# --------------------------------------------------
+@app.get("/awareness/summary", response_model=AwarenessSummary)
+def awareness_summary():
+    return AwarenessSummary(
+        status="ok",
+        message="Cybersecurity awareness summary placeholder (MVP).",
+        campaigns=[],
+    )
+
+@app.get("/aiops/summary", response_model=AIOpsSummary)
+def aiops_summary():
+    return AIOpsSummary(
+        status="ok",
+        message="AIOps summary placeholder (MVP).",
+        alerts=[],
+    )
+
+
+# --------------------------------------------------
+# Alias: /api/auth/login → /auth/login
+# --------------------------------------------------
+@app.post("/api/auth/login")
+def api_login(username: str = Form(...), password: str = Form(...)):
+    """
+    Thin wrapper so scripts and the portal can POST to /api/auth/login.
+    Reuses the same logic as /auth/login.
+    """
+    return login(username=username, password=password)

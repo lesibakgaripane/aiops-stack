@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AIOps Unified Portal - Home</title>
+  <link rel="stylesheet" href="portal.css" />
+</head>
+<body>
+  <div class="portal-container">
+    <h1>AIOps Unified Portal</h1>
+    <p class="helper-text">
+      Your unified entry point into AIOps operations, Cybersecurity Awareness, and Ecosystem health.
+    </p>
+
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="aiops.html">AIOps Operations Center</a>
+      <a href="awareness.html">Cybersecurity Awareness</a>
+      <a href="ecosystem.html">Ecosystem Health</a>
+    </nav>
+
+    <div class="portal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2>Welcome back</h2>
+          <p class="helper-text">
+            Choose the view that matches your role. The portal will adapt based on your permissions.
+          </p>
+        </div>
+        <span class="role-badge" data-role-banner>Loading role…</span>
+      </div>
+    </div>
+
+    <div class="portal-grid two-col">
+      <section class="portal-card">
+        <h3>AIOps Operations Center</h3>
+        <p class="helper-text">
+          For admins and operators: access anomaly insights, alerts, and telemetry across the ecosystem.
+        </p>
+        <ul>
+          <li>High-level anomaly and alert summaries</li>
+          <li>Future: drill-down into node / service health</li>
+          <li>Future: AI-assisted troubleshooting workflows</li>
+        </ul>
+        <button type="button" onclick="window.location.href='aiops.html'">
+          Open AIOps View
+        </button>
+      </section>
+
+      <section class="portal-card">
+        <h3>Cybersecurity Awareness Center</h3>
+        <p class="helper-text">
+          For every user: interactive content to improve awareness and reduce cyber risk.
+        </p>
+        <ul>
+          <li>Daily micro-lessons and quizzes</li>
+          <li>Scenario-based simulations</li>
+          <li>Future: personalised risk score per user</li>
+        </ul>
+        <button type="button" onclick="window.location.href='awareness.html'">
+          Open Awareness Center
+        </button>
+      </section>
+    </div>
+
+    <section class="portal-card">
+      <h3>Ecosystem Health Overview</h3>
+      <p class="helper-text">
+        Glimpse of overall stack availability. This will evolve into a fully interactive topology and status map.
+      </p>
+      <p><strong>Status API:</strong> <span id="eco-status">Loading…</span></p>
+      <p><strong>Message:</strong> <span id="eco-msg">Loading…</span></p>
+    </section>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="portal-ui.js"></script>
+  <script>
+    async function loadEcosystemStatus() {
+      try {
+        const resp = await fetch("/status/ecosystem/status");
+        if (!resp.ok) {
+          document.getElementById("eco-status").textContent = "Unavailable";
+          document.getElementById("eco-msg").textContent = "Status endpoint returned " + resp.status;
+          return;
+        }
+        const data = await resp.json();
+        document.getElementById("eco-status").textContent = "Online";
+        document.getElementById("eco-msg").textContent =
+          "Reporting " + (data.services ? data.services.length : 0) + " core services.";
+      } catch (e) {
+        console.error(e);
+        document.getElementById("eco-status").textContent = "Error";
+        document.getElementById("eco-msg").textContent = "Failed to reach ecosystem status endpoint.";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadEcosystemStatus);
+  </script>
+</body>
+</html>

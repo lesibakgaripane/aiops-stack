@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ecosystem Health</title>
+  <link rel="stylesheet" href="portal.css" />
+</head>
+<body>
+  <div class="portal-container">
+    <h1>Ecosystem Health</h1>
+
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="aiops.html">AIOps Operations Center</a>
+      <a href="awareness.html">Cybersecurity Awareness</a>
+      <a href="ecosystem.html">Ecosystem Health</a>
+    </nav>
+
+    <section class="portal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h2>Core Services</h2>
+          <p class="helper-text">
+            Snapshot of the main services in the AIOps stack as reported by the UI Gateway / status endpoint.
+          </p>
+        </div>
+        <span class="role-badge" data-role-banner>Loading role…</span>
+      </div>
+
+      <p><strong>Service count:</strong> <span id="eco-count">Loading…</span></p>
+      <p><strong>Summary:</strong> <span id="eco-summary">Loading…</span></p>
+
+      <h3>Services</h3>
+      <pre id="eco-list">Loading…</pre>
+    </section>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="portal-ui.js"></script>
+  <script>
+    async function loadEcosystemDetails() {
+      try {
+        const resp = await fetch("/status/ecosystem/status");
+        if (!resp.ok) {
+          document.getElementById("eco-count").textContent = "Unavailable";
+          document.getElementById("eco-summary").textContent = "Endpoint returned " + resp.status;
+          document.getElementById("eco-list").textContent = "";
+          return;
+        }
+        const data = await resp.json();
+        const services = data.services || [];
+
+        document.getElementById("eco-count").textContent = services.length.toString();
+        document.getElementById("eco-summary").textContent =
+          services.length > 0 ? "All core services reported." : "No services reported.";
+
+        document.getElementById("eco-list").textContent = JSON.stringify(services, null, 2);
+      } catch (e) {
+        console.error(e);
+        document.getElementById("eco-count").textContent = "Error";
+        document.getElementById("eco-summary").textContent = "Failed to reach /status/ecosystem/status.";
+        document.getElementById("eco-list").textContent = "";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadEcosystemDetails);
+  </script>
+</body>
+</html>

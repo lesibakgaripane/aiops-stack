@@ -1,0 +1,262 @@
+/* Base layout */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 2rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top left, #0f172a 0%, #020617 45%, #000000 100%);
+  color: #e5e7eb;
+}
+
+/* Smooth fade when portal loads */
+body.portal-loaded {
+  transition: background 0.8s ease, color 0.4s ease, transform 0.4s ease;
+}
+
+/* Headings */
+h1, h2, h3 {
+  margin-top: 0;
+  letter-spacing: 0.03em;
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  margin-top: 1.5rem;
+  font-size: 1.4rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Nav bar */
+nav {
+  margin: 1rem 0 1.5rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(12px);
+  display: inline-flex;
+  gap: 1rem;
+  font-size: 0.95rem;
+}
+
+nav a {
+  color: #e5e7eb;
+  text-decoration: none;
+  opacity: 0.8;
+}
+
+nav a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* Main container */
+.portal-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Cards */
+.portal-card {
+  background: rgba(15, 23, 42, 0.95);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.portal-card::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 55%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Role badge */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.7);
+  color: #bbf7d0;
+}
+
+/* Simple grid for dashboard cards */
+.portal-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 960px) {
+  .portal-grid.two-col {
+    grid-template-columns: 1.4fr 1fr;
+  }
+}
+
+/* Form styling */
+form {
+  margin: 1rem 0;
+}
+
+input[type="text"],
+input[type="password"] {
+  border-radius: 0.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.9);
+  padding: 0.5rem 0.75rem;
+  color: #e5e7eb;
+  min-width: 230px;
+}
+
+button {
+  border-radius: 999px;
+  border: none;
+  padding: 0.5rem 1.4rem;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  background: linear-gradient(135deg, #22c55e, #0ea5e9);
+  color: #020617;
+  font-weight: 600;
+  box-shadow: 0 12px 30px rgba(34, 197, 94, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 40px rgba(34, 197, 94, 0.45);
+  opacity: 0.95;
+}
+
+/* Lists & helpers */
+ul {
+  padding-left: 1.3rem;
+}
+
+li {
+  margin-bottom: 0.25rem;
+}
+
+.helper-text {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+/* JSON / logs */
+pre {
+  background: #020617;
+  color: #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  font-size: 0.8rem;
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  opacity: 0.9;
+}
+
+/* Login layout */
+.auth-layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (min-width: 900px) {
+  .auth-layout {
+    flex-direction: row;
+    align-items: stretch;
+  }
+}
+
+.auth-hero {
+  flex: 1.4;
+  position: relative;
+  padding: 1.5rem 1.75rem;
+  border-radius: 1.5rem;
+  background: radial-gradient(circle at top, rgba(56, 189, 248, 0.2), rgba(37, 99, 235, 0.05));
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.9);
+}
+
+.auth-hero::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(96, 165, 250, 0.35), transparent 55%),
+    radial-gradient(circle at 90% 100%, rgba(45, 212, 191, 0.35), transparent 55%);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.auth-hero-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-slides {
+  list-style: none;
+  padding: 0;
+  margin: 1.2rem 0 0 0;
+}
+
+.auth-slides li {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: authSlide 12s infinite;
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+}
+
+.auth-slides li:nth-child(1) {
+  animation-delay: 0s;
+}
+.auth-slides li:nth-child(2) {
+  animation-delay: 4s;
+}
+.auth-slides li:nth-child(3) {
+  animation-delay: 8s;
+}
+
+@keyframes authSlide {
+  0% { opacity: 0; transform: translateY(10px); }
+  10% { opacity: 1; transform: translateY(0); }
+  25% { opacity: 1; transform: translateY(0); }
+  35% { opacity: 0; transform: translateY(-6px); }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+.auth-tagline {
+  font-size: 0.9rem;
+  color: #cbd5f5;
+}
+
+/* Login card */
+.auth-card {
+  flex: 1;
+  align-self: center;
+  max-width: 380px;
+}

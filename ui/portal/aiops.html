@@ -3,95 +3,81 @@
 <head>
   <meta charset="UTF-8" />
   <title>AIOps Operations Center</title>
+  <link rel="stylesheet" href="portal.css" />
 </head>
 <body>
-  <h1>AIOps Operations Center</h1>
+  <div class="portal-container">
+    <h1>AIOps Operations Center</h1>
 
-  <p>Welcome, <span id="user-name">user</span>.</p>
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="aiops.html">AIOps Operations Center</a>
+      <a href="awareness.html">Cybersecurity Awareness</a>
+      <a href="ecosystem.html">Ecosystem Health</a>
+    </nav>
 
-  <nav>
-    <a href="home.html">Home</a> |
-    <a href="aiops.html">AIOps Operations Center</a> |
-    <a href="awareness.html">Cybersecurity Awareness</a> |
-    <a href="ecosystem.html">Ecosystem Health</a>
-  </nav>
+    <section class="portal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h2>Signals Overview (MVP)</h2>
+          <p class="helper-text">
+            High-level status from the AIOps UI Gateway. Later this becomes a live console with anomaly streams and KPIs.
+          </p>
+        </div>
+        <span class="role-badge" data-role-banner>Loading role…</span>
+      </div>
 
-  <hr />
+      <p><strong>Status:</strong> <span id="aiops-status">Loading…</span></p>
+      <p><strong>Message:</strong> <span id="aiops-msg">Loading…</span></p>
+    </section>
 
-  <h2>AIOps Overview (MVP)</h2>
-  <p>This view shows a simple AIOps summary coming from the ui-gateway.</p>
+    <div class="portal-grid">
+      <section class="portal-card">
+        <h3>Alert Feed (placeholder)</h3>
+        <p class="helper-text">
+          In future, this will stream key alerts and anomalies from Prometheus / anomaly-service into a single pane.
+        </p>
+        <ul>
+          <li>Critical: No critical anomalies reported (MVP placeholder).</li>
+          <li>Warning: Top talker detection and unusual behaviour will appear here.</li>
+          <li>Info: Summarised system events and changes.</li>
+        </ul>
+      </section>
 
-  <h3>Summary (from API)</h3>
-  <p><strong>Status:</strong> <span id="aiops-status">Loading...</span></p>
-  <p><strong>Message:</strong> <span id="aiops-msg">Loading...</span></p>
-
-  <h4>Alerts</h4>
-  <ul id="aiops-alerts">
-    <li>Loading...</li>
-  </ul>
-
-  <button id="logout-btn">Logout</button>
+      <section class="portal-card">
+        <h3>Planned AIOps Widgets</h3>
+        <ul>
+          <li>Node health heatmap and latency snapshots</li>
+          <li>Service SLO indicator tiles</li>
+          <li>AI “explain this incident” panel powered by the RAG service</li>
+        </ul>
+      </section>
+    </div>
+  </div>
 
   <script src="auth.js"></script>
+  <script src="portal-ui.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      // Enforce authentication
-      window.aiopsAuth.requireAuth("login.html");
-
-      const auth = window.aiopsAuth.getAuth();
-      const userNameEl = document.getElementById("user-name");
-      if (auth && auth.username) {
-        userNameEl.textContent = auth.username;
+    async function loadAIOpsSummary() {
+      try {
+        const headers = window.aiopsAuth ? window.aiopsAuth.getAuthHeader() : {};
+        const resp = await fetch("/aiops/summary", { headers });
+        if (!resp.ok) {
+          document.getElementById("aiops-status").textContent = "Unavailable";
+          document.getElementById("aiops-msg").textContent = "Summary endpoint returned " + resp.status;
+          return;
+        }
+        const data = await resp.json();
+        document.getElementById("aiops-status").textContent = data.status || "OK";
+        document.getElementById("aiops-msg").textContent = data.message || "AIOps summary placeholder (MVP).";
+      } catch (e) {
+        console.error(e);
+        document.getElementById("aiops-status").textContent = "Error";
+        document.getElementById("aiops-msg").textContent = "Failed to reach /aiops/summary.";
       }
+    }
 
-      const logoutBtn = document.getElementById("logout-btn");
-      logoutBtn.addEventListener("click", function () {
-        window.aiopsAuth.clearAuth();
-        window.location.href = "login.html";
-      });
-
-      const statusEl = document.getElementById("aiops-status");
-      const msgEl = document.getElementById("aiops-msg");
-      const alertsEl = document.getElementById("aiops-alerts");
-
-      fetch("/aiops/summary")
-        .then(resp => {
-          if (!resp.ok) {
-            throw new Error("HTTP " + resp.status);
-          }
-          return resp.json();
-        })
-        .then(data => {
-          statusEl.textContent = data.status || "unknown";
-          msgEl.textContent = data.message || "No message";
-
-          const alerts = data.alerts || [];
-          alertsEl.innerHTML = "";
-          if (alerts.length === 0) {
-            const li = document.createElement("li");
-            li.textContent = "No alerts reported.";
-            alertsEl.appendChild(li);
-            return;
-          }
-
-          for (const a of alerts) {
-            const li = document.createElement("li");
-            li.textContent = a;
-            alertsEl.appendChild(li);
-          }
-        })
-        .catch(err => {
-          console.error("AIOps summary error:", err);
-          statusEl.textContent = "ERROR";
-          msgEl.textContent = "Failed to fetch AIOps summary.";
-          alertsEl.innerHTML = "";
-          const li = document.createElement("li");
-          li.textContent = "Error fetching AIOps summary: " + err;
-          alertsEl.appendChild(li);
-        });
-    });
+    document.addEventListener("DOMContentLoaded", loadAIOpsSummary);
   </script>
-
-  <script src="chat-widget.js"></script>
 </body>
 </html>
