@@ -1,83 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>AIOps Operations Center</title>
-  <link rel="stylesheet" href="portal.css" />
+  <meta charset="UTF-8">
+  <title>LesiBytes Cyber Awareness Portal</title>
+  <link rel="stylesheet" href="portal.css">
 </head>
-<body>
-  <div class="portal-container">
-    <h1>AIOps Operations Center</h1>
+<body class="page">
+  <header>
+    <div class="brand">LESIBYTES</div>
+    <div class="tagline">REMODELING EXCELLENCE · CYBER AWARENESS</div>
+  </header>
 
-    <nav>
-      <a href="home.html">Home</a>
-      <a href="aiops.html">AIOps Operations Center</a>
-      <a href="awareness.html">Cybersecurity Awareness</a>
-      <a href="ecosystem.html">Ecosystem Health</a>
-    </nav>
+  <main class="main">
+    <section class="hero">
+      <div class="hero-left">
+        <span class="badge">Unified AIOps · Cybersecurity · Awareness</span>
+        <h1>Cyber awareness that feels like a modern app, not a boring course.</h1>
+        <p>
+          One unified portal for admins, HR, IT and every end-user. Track behaviour,
+          measure risk, and coach people in real time with AI-backed insights.
+        </p>
 
-    <section class="portal-card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <h2>Signals Overview (MVP)</h2>
-          <p class="helper-text">
-            High-level status from the AIOps UI Gateway. Later this becomes a live console with anomaly streams and KPIs.
-          </p>
+        <div class="pill-row">
+          <div class="pill">AI-powered tips</div>
+          <div class="pill">Behaviour metrics</div>
+          <div class="pill">Gamified learning</div>
+          <div class="pill">Cisco / network integrated</div>
         </div>
-        <span class="role-badge" data-role-banner>Loading role…</span>
+
+        <button class="btn" onclick="window.location.href="login.html"">
+          Enter Portal
+        </button>
+        <button class="btn secondary" onclick="goDashboard()">
+          View My Progress
+        </button>
       </div>
 
-      <p><strong>Status:</strong> <span id="aiops-status">Loading…</span></p>
-      <p><strong>Message:</strong> <span id="aiops-msg">Loading…</span></p>
+      <div class="hero-video">
+        <!-- Lightweight embedded awareness video -->
+        <iframe
+          src="https://www.youtube.com/embed/JpfEBQn2CjM"
+          title="Cyber Security Awareness"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen>
+        </iframe>
+      </div>
     </section>
 
-    <div class="portal-grid">
-      <section class="portal-card">
-        <h3>Alert Feed (placeholder)</h3>
-        <p class="helper-text">
-          In future, this will stream key alerts and anomalies from Prometheus / anomaly-service into a single pane.
-        </p>
-        <ul>
-          <li>Critical: No critical anomalies reported (MVP placeholder).</li>
-          <li>Warning: Top talker detection and unusual behaviour will appear here.</li>
-          <li>Info: Summarised system events and changes.</li>
-        </ul>
-      </section>
+    <div class="section-title">Role-based spaces</div>
+    <section class="card">
+      <p style="margin-bottom:14px;">
+        After login, users land in their own view. Below is how we segment the experience.
+      </p>
+      <div class="role-grid">
+        <div class="card">
+          <h3>Admin & Superusers</h3>
+          <p>
+            Full view of ecosystem health, AIOps signals and awareness metrics.
+            Ideal for senior leadership and platform owners.
+          </p>
+          <button class="btn secondary" onclick="location.href='dashboard.html'">
+            Sample Admin View
+          </button>
+        </div>
 
-      <section class="portal-card">
-        <h3>Planned AIOps Widgets</h3>
-        <ul>
-          <li>Node health heatmap and latency snapshots</li>
-          <li>Service SLO indicator tiles</li>
-          <li>AI “explain this incident” panel powered by the RAG service</li>
-        </ul>
-      </section>
-    </div>
-  </div>
+        <div class="card">
+          <h3>HR Insights</h3>
+          <p>
+            Track engagement, completion and risk trends per department.
+            Exportable metrics for performance reviews and compliance.
+          </p>
+          <button class="btn secondary" onclick="location.href='hr-dashboard.html'">
+            HR Metrics Preview
+          </button>
+        </div>
 
-  <script src="auth.js"></script>
-  <script src="portal-ui.js"></script>
+        <div class="card">
+          <h3>IT & Operations</h3>
+          <p>
+            Link user behaviour with incidents, alerts and AIOps findings.
+            See which teams click phishing, reuse passwords, or ignore alerts.
+          </p>
+          <button class="btn secondary" onclick="location.href='it-dashboard.html'">
+            IT Operations View
+          </button>
+        </div>
+
+        <div class="card">
+          <h3>End-User Academy</h3>
+          <p>
+            Short, interactive modules, quizzes and simulations that work on
+            mobile or desktop. No jargon, just practical habits.
+          </p>
+          <button class="btn secondary" onclick="location.href='awareness.html'">
+            Explore Modules
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Universal chat widget hook (already backed by chat-widget.js / Rasa) -->
+  <div id="chat-widget-container"></div>
+  <script src="chat-widget.js"></script>
+
   <script>
-    async function loadAIOpsSummary() {
-      try {
-        const headers = window.aiopsAuth ? window.aiopsAuth.getAuthHeader() : {};
-        const resp = await fetch("/aiops/summary", { headers });
-        if (!resp.ok) {
-          document.getElementById("aiops-status").textContent = "Unavailable";
-          document.getElementById("aiops-msg").textContent = "Summary endpoint returned " + resp.status;
-          return;
-        }
-        const data = await resp.json();
-        document.getElementById("aiops-status").textContent = data.status || "OK";
-        document.getElementById("aiops-msg").textContent = data.message || "AIOps summary placeholder (MVP).";
-      } catch (e) {
-        console.error(e);
-        document.getElementById("aiops-status").textContent = "Error";
-        document.getElementById("aiops-msg").textContent = "Failed to reach /aiops/summary.";
-      }
+    // For now we do simple navigation. Later this will read JWT role and redirect.
+    function window.location.href="login.html" {
+      window.location.href = "awareness.html";
     }
-
-    document.addEventListener("DOMContentLoaded", loadAIOpsSummary);
+    function goDashboard() {
+      window.location.href = "dashboard.html";
+    }
   </script>
 </body>
 </html>

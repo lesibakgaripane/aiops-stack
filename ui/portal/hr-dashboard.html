@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HR · Awareness Metrics</title>
+  <link rel="stylesheet" href="portal.css">
+</head>
+<body class="page">
+  <header>
+    <div class="brand">LESIBYTES</div>
+    <div class="tagline">HR · PEOPLE & RISK INSIGHTS</div>
+  </header>
+
+  <main class="main">
+    <div class="card">
+      <h2>Engagement snapshot (demo)</h2>
+      <p>
+        This view is meant for HR to see how many modules are completed, average scores,
+        and which content resonates. For now, we compute simple aggregates from quiz data.
+      </p>
+      <pre id="hr-metrics" style="max-height:260px;overflow:auto;background:rgba(0,0,0,0.45);padding:10px;border-radius:10px;"></pre>
+    </div>
+  </main>
+
+  <div id="chat-widget-container"></div>
+  <script src="chat-widget.js"></script>
+
+  <script>
+    function computeMetrics(scores) {
+      if (!Array.isArray(scores) || scores.length === 0) {
+        return { total_submissions: 0 };
+      }
+      const byModule = {};
+      for (const s of scores) {
+        const m = s.module || "unknown";
+        if (!byModule[m]) byModule[m] = { count: 0, sum: 0 };
+        byModule[m].count += 1;
+        byModule[m].sum += Number(s.score || 0);
+      }
+      const modules = {};
+      for (const [m, v] of Object.entries(byModule)) {
+        modules[m] = {
+          submissions: v.count,
+          avg_score: v.sum / v.count
+        };
+      }
+      return {
+        total_submissions: scores.length,
+        modules
+      };
+    }
+
+    fetch("/ui-api/get_scores")
+      .then(r => r.json())
+      .then(data => {
+        const metrics = computeMetrics(data);
+        document.getElementById("hr-metrics").innerText = JSON.stringify(metrics, null, 2);
+      })
+      .catch(() => {
+        document.getElementById("hr-metrics").innerText = "No data available yet.";
+      });
+  </script>
+</body>
+</html>

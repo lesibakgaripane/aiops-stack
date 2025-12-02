@@ -188,47 +188,10 @@ def api_login(username: str = Form(...), password: str = Form(...)):
     """
     return login(username=username, password=password)
 
-
-
 # --- LesiBytes Cyber Awareness Portal static mount ---
 from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
-PORTAL_DIR = "/home/lesiba/aiops-stack/ui/portal"
-app.mount("/portal", StaticFiles(directory=PORTAL_DIR, html=True), name="portal")
+PORTAL_DIR = (Path(__file__).resolve().parents[1] / "portal")
+app.mount("/portal", StaticFiles(directory=str(PORTAL_DIR), html=True), name="portal")
 # --- End portal static mount ---
-
-# --- LesiBytes UI score APIs (demo storage in /tmp) ---
-from pydantic import BaseModel
-from typing import Optional, List
-
-class ScorePayload(BaseModel):
-    module: int
-    score: str
-    timestamp: Optional[str] = None
-
-@app.post("/ui-api/save_score")
-def save_score(payload: ScorePayload):
-    import json, os
-    os.makedirs("/tmp", exist_ok=True)
-    with open("/tmp/user_scores.log", "a") as f:
-        f.write(payload.json() + "\n")
-    return {"status": "ok"}
-
-@app.get("/ui-api/get_scores")
-def get_scores() -> List[dict]:
-    import os, json
-    path = "/tmp/user_scores.log"
-    if not os.path.exists(path):
-        return []
-    data = []
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                data.append(json.loads(line))
-            except Exception:
-                continue
-    return data
-# --- End UI score APIs ---

@@ -1,135 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Cybersecurity Awareness Center</title>
-  <link rel="stylesheet" href="portal.css" />
+  <meta charset="UTF-8">
+  <title>LesiBytes Awareness Modules</title>
+  <link rel="stylesheet" href="portal.css">
 </head>
-<body>
-  <div class="portal-container">
-    <h1>Cybersecurity Awareness Center</h1>
+<body class="page">
+  <header>
+    <div class="brand">LESIBYTES</div>
+    <div class="tagline">CYBER AWARENESS · LEARNING PATH</div>
+  </header>
 
-    <nav>
-      <a href="home.html">Home</a>
-      <a href="aiops.html">AIOps Operations Center</a>
-      <a href="awareness.html">Cybersecurity Awareness</a>
-      <a href="ecosystem.html">Ecosystem Health</a>
-    </nav>
+  <main class="main">
+    <div class="section-title">Learning modules</div>
 
-    <!-- Awareness pulse from backend -->
-    <section class="portal-card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <h2>Today's Awareness Pulse</h2>
-          <p class="helper-text">
-            Lightweight summary via the UI Gateway. This will evolve into a full awareness score per user or team.
-          </p>
-        </div>
-        <span class="role-badge" data-role-banner>Loading role...</span>
-      </div>
-
-      <p><strong>Status:</strong> <span id="aw-status">Loading...</span></p>
-      <p><strong>Message:</strong> <span id="aw-msg">Loading...</span></p>
-    </section>
-
-    <!-- Interactive quiz MVP -->
-    <section class="portal-card">
-      <h2>Quick Awareness Check (MVP)</h2>
-      <p class="helper-text">
-        Answer these short scenarios. Later this will link into personalised awareness scores and campaigns.
+    <div class="card">
+      <h3>Module 1 · Passwords & Identity</h3>
+      <p>
+        Learn how attackers steal passwords, how password reuse happens, and
+        how to build strong passphrases that are easy to remember.
       </p>
+      <button class="btn" onclick="location.href='lesson1.html'">
+        Begin Module
+      </button>
+    </div>
 
-      <form id="aw-quiz-form">
-        <!-- Q1 -->
-        <div class="quiz-question" data-question data-correct="b">
-          <p><strong>1.</strong> You receive an email that appears to be from your bank asking you to verify your account via a link. What is the safest action?</p>
-          <label>
-            <input type="radio" name="q1" value="a" />
-            Click the link if the logo and colours look correct.
-          </label><br />
-          <label>
-            <input type="radio" name="q1" value="b" />
-            Do not click the link. Open the bank app or type the official URL you already trust.
-          </label><br />
-          <label>
-            <input type="radio" name="q1" value="c" />
-            Reply to the email and ask if it is legitimate.
-          </label>
-        </div>
-
-        <!-- Q2 -->
-        <div class="quiz-question" data-question data-correct="c">
-          <p><strong>2.</strong> A colleague messages you urgently asking for your VPN password to fix a production issue. What should you do?</p>
-          <label>
-            <input type="radio" name="q2" value="a" />
-            Share the password because the request is urgent.
-          </label><br />
-          <label>
-            <input type="radio" name="q2" value="b" />
-            Share the password and change it later.
-          </label><br />
-          <label>
-            <input type="radio" name="q2" value="c" />
-            Refuse to share the password and report the request to the security or IT team.
-          </label>
-        </div>
-
-        <!-- Q3 -->
-        <div class="quiz-question" data-question data-correct="a">
-          <p><strong>3.</strong> You are leaving your desk in a shared office space. What is best practice?</p>
-          <label>
-            <input type="radio" name="q3" value="a" />
-            Lock your screen or sign out, even if you will be away for a short time.
-          </label><br />
-          <label>
-            <input type="radio" name="q3" value="b" />
-            Leave the screen unlocked if you will be away for less than five minutes.
-          </label><br />
-          <label>
-            <input type="radio" name="q3" value="c" />
-            Turn the monitor off but leave the session open.
-          </label>
-        </div>
-
-        <button type="submit" class="primary-btn" style="margin-top:1rem;">Check my score</button>
-      </form>
-
-      <p id="aw-quiz-result" class="helper-text" style="margin-top:0.75rem;"></p>
-
-      <p class="helper-text" style="margin-top:1rem; font-size:0.85rem;">
-        This is the first MVP. Future versions will add video clips, phishing simulations, and micro-lessons driven by your behaviour and role.
+    <div class="card">
+      <h3>Module 2 · Phishing Awareness</h3>
+      <p>
+        Spot suspicious emails, SMS and WhatsApp messages. Practice with
+        examples and see how your score improves over time.
       </p>
-    </section>
-  </div>
+      <button class="btn secondary">
+        Coming soon
+      </button>
+    </div>
+  </main>
 
-  <script src="auth.js"></script>
-  <script src="portal-ui.js"></script>
+  <div id="chat-widget-container"></div>
   <script src="chat-widget.js"></script>
-  <script src="awareness-quiz.js"></script>
-  <script>
-    async function loadAwarenessSummary() {
-      var statusEl = document.getElementById("aw-status");
-      var msgEl = document.getElementById("aw-msg");
-
-      try {
-        var resp = await fetch("/awareness/summary");
-        if (!resp.ok) {
-          statusEl.textContent = "Unavailable";
-          msgEl.textContent = "Failed to reach /awareness/summary.";
-          return;
-        }
-
-        var data = await resp.json();
-        statusEl.textContent = data.status || "OK";
-        msgEl.textContent = data.message || "Awareness engine placeholder (MVP).";
-      } catch (e) {
-        console.error("Error fetching awareness summary:", e);
-        statusEl.textContent = "Error";
-        msgEl.textContent = "An error occurred talking to the awareness summary endpoint.";
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", loadAwarenessSummary);
-  </script>
 </body>
 </html>

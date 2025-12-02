@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IT · AIOps & Awareness Operations</title>
+  <link rel="stylesheet" href="portal.css">
+</head>
+<body class="page">
+  <header>
+    <div class="brand">LESIBYTES</div>
+    <div class="tagline">IT · OPERATIONS & SIGNALS</div>
+  </header>
+
+  <main class="main">
+    <div class="card">
+      <h2>Ecosystem status (from AIOps)</h2>
+      <pre id="ecosystem" style="max-height:220px;overflow:auto;background:rgba(0,0,0,0.45);padding:10px;border-radius:10px;"></pre>
+    </div>
+
+    <div class="card">
+      <h2>Awareness / AIOps summaries</h2>
+      <pre id="aiops-summary" style="max-height:220px;overflow:auto;background:rgba(0,0,0,0.45);padding:10px;border-radius:10px;margin-bottom:8px;"></pre>
+      <pre id="awareness-summary" style="max-height:220px;overflow:auto;background:rgba(0,0,0,0.45);padding:10px;border-radius:10px;"></pre>
+    </div>
+  </main>
+
+  <div id="chat-widget-container"></div>
+  <script src="chat-widget.js"></script>
+
+  <script>
+    function safeJson(preId, url) {
+      fetch(url)
+        .then(r => r.json())
+        .then(data => { document.getElementById(preId).innerText = JSON.stringify(data, null, 2); })
+        .catch(() => { document.getElementById(preId).innerText = "Not available."; });
+    }
+
+    safeJson("ecosystem", "/status/ecosystem/status");
+    safeJson("aiops-summary", "/aiops/summary");
+    safeJson("awareness-summary", "/awareness/summary");
+  </script>
+</body>
+</html>

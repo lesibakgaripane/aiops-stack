@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz · Password Security</title>
+  <link rel="stylesheet" href="portal.css">
+  <script src="quiz.js"></script>
+</head>
+<body class="page">
+  <header>
+    <div class="brand">LESIBYTES</div>
+    <div class="tagline">QUIZ · MODULE 1</div>
+  </header>
+
+  <main class="main">
+    <div class="card">
+      <h2>Quick check: Passwords</h2>
+      <p><b>Q1:</b> Which is the strongest password?</p>
+
+      <label>
+        <input type="radio" name="q1" value="0">
+        P@ssw0rd123
+      </label><br>
+      <label>
+        <input type="radio" name="q1" value="1">
+        A long passphrase like "PurpleBirdsSingLoud!"
+      </label><br><br>
+
+      <button class="btn" onclick="submitQuiz(1)">Submit</button>
+    </div>
+  </main>
+
+  <div id="chat-widget-container"></div>
+  <script src="chat-widget.js"></script>
+</body>
+</html>

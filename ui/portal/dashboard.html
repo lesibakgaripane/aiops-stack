@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Cybersecurity Progress</title>
+  <link rel="stylesheet" href="portal.css">
+</head>
+<body class="page">
+  <header>
+    <div class="brand">LESIBYTES</div>
+    <div class="tagline">PERSONAL DASHBOARD</div>
+  </header>
+
+  <main class="main">
+    <div class="card">
+      <h2>Your quiz history</h2>
+      <p>Below is a simple view of your submitted module scores (demo storage in /tmp).</p>
+      <pre id="scores" style="max-height:260px;overflow:auto;background:rgba(0,0,0,0.45);padding:10px;border-radius:10px;"></pre>
+    </div>
+  </main>
+
+  <div id="chat-widget-container"></div>
+  <script src="chat-widget.js"></script>
+
+  <script>
+    fetch("/ui-api/get_scores")
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById("scores").innerText = JSON.stringify(data, null, 2);
+      })
+      .catch(() => {
+        document.getElementById("scores").innerText = "No scores recorded yet.";
+      });
+  </script>
+</body>
+</html>
