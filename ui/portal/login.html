@@ -8,38 +8,28 @@
 </head>
 <body class="page">
   <header>
-    <div class="brand">LESIBYTES</div>
-    <div class="tagline">UNIFIED AWARENESS · LOGIN</div>
+    <img src="LesiBytes-Logo.png" class="lb-logo-main" alt="LesiBytes logo">
+    <div>
+      <div class="brand">LESIBYTES</div>
+      <div class="tagline">Unified AIOps & Awareness</div>
+    </div>
   </header>
 
   <main class="main">
     <div class="card">
       <h2>Welcome to the LesiBytes cyber portal</h2>
-      <p>Choose your role and sign in. In the next phase this will be wired to the real auth DB.</p>
+      <p>Sign in to access your AIOps & awareness space.</p>
 
-      <label>Email / Username</label><br>
+      <label>Username / Email</label><br>
       <input id="lb-username" type="text" placeholder="you@company.com"
              style="width:100%;padding:10px;border-radius:10px;border:none;margin:6px 0 14px;"><br>
 
-      <label>Role</label><br>
-      <select id="lb-role"
-              style="width:100%;padding:10px;border-radius:10px;border:none;margin:6px 0 18px;">
-        <option value="enduser">End User (awareness)</option>
-        <option value="hr">HR (metrics)</option>
-        <option value="it">IT (operations)</option>
-        <option value="admin">Admin (same as IT for now)</option>
-      </select>
+      <label>Password</label><br>
+      <input id="lb-password" type="password" placeholder="••••••••"
+             style="width:100%;padding:10px;border-radius:10px;border:none;margin:6px 0 18px;"><br>
 
-      <button class="btn" onclick="lbLogin()">Continue</button>
-
-      <p style="font-size:12px;opacity:0.7;margin-top:12px;">
-        Prototype: roles are stored in browser only. Next step is to bind this to
-        the AIOps auth service and MariaDB.
-      </p>
+      <button class="btn" onclick="lbLogin()">Sign in</button>
     </div>
   </main>
-
-  <div id="chat-widget-container"></div>
-  <script src="chat-widget.js"></script>
 </body>
 </html>

@@ -29,191 +29,160 @@ body {
   padding: 24px 16px 64px;
 }
 
-/* Header / hero */
-
 header {
-  padding: 24px 32px 12px;
-  text-align: center;
+  padding: 18px 24px 24px;
+  background: radial-gradient(circle at top, #1b0b46 0, #090712 55%, #090712 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: left;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.75);
+  position: relative;
+  z-index: 2;
 }
 
+/* Logo sizes */
+.lb-logo-main {
+  height: 80px;
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.35));
+}
+
+.lb-logo-small {
+  height: 40px;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.25));
+}
+
+/* Branding text */
+
 .brand {
-  font-size: 32px;
-  letter-spacing: 0.5rem;
+  font-size: 28px;
   font-weight: 700;
-  text-transform: uppercase;
-  color: #f5f5ff;
-  text-shadow: 0 0 18px rgba(127, 76, 255, 0.75);
+  letter-spacing: 6px;
 }
 
 .tagline {
-  margin-top: 6px;
   font-size: 13px;
-  letter-spacing: 0.3rem;
   text-transform: uppercase;
-  color: #c6b7ff;
+  letter-spacing: 3px;
+  opacity: 0.85;
+}
+
+/* Cards, hero, buttons */
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 20px 10px 8px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  opacity: 0.9;
 }
 
 .hero {
-  margin-top: 24px;
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 20px;
-  align-items: stretch;
+  margin-top: 28px;
 }
 
-.hero-left h1 {
-  font-size: 28px;
-  margin: 0 0 12px;
+.hero-left,
+.hero-right {
+  flex: 1 1 320px;
 }
 
-.hero-left p {
-  margin: 0 0 18px;
-  color: #d8d4ff;
-  font-size: 15px;
+.badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: 10px;
+}
+
+.hero h1 {
+  font-size: 30px;
+  margin: 6px 0 10px;
+}
+
+.hero p {
+  max-width: 520px;
+  opacity: 0.9;
 }
 
 .pill-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 18px;
+  gap: 10px;
+  margin: 16px 0 20px;
 }
 
 .pill {
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  background: rgba(14, 9, 35, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12rem;
-  color: #e3ddff;
 }
 
-.hero-video {
-  background: radial-gradient(circle at top, rgba(255,255,255,0.1), transparent 60%);
-  border-radius: 20px;
-  padding: 12px;
-  border: 1px solid rgba(255,255,255,0.12);
-  box-shadow: 0 18px 40px rgba(0,0,0,0.8);
+.glass-panel {
+  background: radial-gradient(circle at top left, rgba(127, 76, 255, 0.4), rgba(5, 5, 15, 0.95));
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 18px 18px 20px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
 }
-
-.hero-video iframe,
-.hero-video video {
-  width: 100%;
-  height: 220px;
-  border-radius: 14px;
-  border: none;
-}
-
-/* Cards / grids */
 
 .card {
-  background: rgba(15, 15, 28, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75);
+  background: radial-gradient(circle at top left, rgba(127, 76, 255, 0.23), rgba(5, 5, 15, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 24px;
   border-radius: 18px;
-  padding: 20px 20px 18px;
-  margin: 18px 0;
-  backdrop-filter: blur(16px);
+  margin: 18px 8px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
 }
 
-.card h2, .card h3 {
-  margin-top: 0;
-  margin-bottom: 6px;
-}
+/* Reusable code box styling */
 
-.card p {
-  margin-top: 4px;
-  color: #cbc7f7;
-  font-size: 14px;
-}
-
-.role-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 16px;
-  margin-top: 8px;
+.code-box {
+  max-height: 260px;
+  overflow: auto;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 10px;
+  border-radius: 10px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
 }
 
 /* Buttons */
 
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border-radius: 999px;
+  background: linear-gradient(135deg, #7f4cff, #ff6ad5);
   border: none;
-  padding: 10px 20px;
-  margin-top: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.06rem;
-  text-transform: uppercase;
+  padding: 11px 26px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  background-image: linear-gradient(90deg, #4c1aff, #7f4cff, #ff6ad5);
   color: #ffffff;
-  box-shadow: 0 0 14px rgba(127, 76, 255, 0.9);
-  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, filter 0.15s;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8);
+  transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, filter 0.12s ease-out;
 }
 
 .btn:hover {
   transform: translateY(-1px) scale(1.03);
-  box-shadow: 0 0 22px rgba(255, 106, 213, 0.9);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.95);
   filter: brightness(1.05);
 }
 
-.btn.secondary {
-  background-image: none;
-  background: rgba(255,255,255,0.08);
-  box-shadow: none;
-  border: 1px solid rgba(255,255,255,0.2);
-}
+/* Small screen adjustments */
 
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(76, 26, 255, 0.2);
-  border: 1px solid rgba(127, 76, 255, 0.7);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.1rem;
-  color: #e2ddff;
-}
-
-/* Simple section titles */
-
-.section-title {
-  font-size: 14px;
-  letter-spacing: 0.18rem;
-  text-transform: uppercase;
-  color: #9f94ff;
-  margin: 28px 0 8px;
-}
-
-/* Chat widget placeholder (panel on bottom-right) */
-
-#chat-widget-container {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 999;
-}
-
-/* Basic responsive tweak */
-
-@media (max-width: 800px) {
-  .hero {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 640px) {
   header {
-    padding: 20px 16px 8px;
-  }
-  .main {
-    padding: 16px 12px 48px;
+    flex-direction: column;
+    text-align: center;
   }
 }

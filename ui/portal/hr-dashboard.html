@@ -7,8 +7,11 @@
 </head>
 <body class="page">
   <header>
-    <div class="brand">LESIBYTES</div>
-    <div class="tagline">HR · PEOPLE & RISK INSIGHTS</div>
+    <img src="LesiBytes-Logo.png" class="lb-logo-small" alt="LesiBytes logo">
+    <div>
+      <div class="brand">LESIBYTES</div>
+      <div class="tagline">HR · PEOPLE & RISK INSIGHTS</div>
+    </div>
   </header>
 
   <main class="main">
@@ -18,7 +21,7 @@
         This view is meant for HR to see how many modules are completed, average scores,
         and which content resonates. For now, we compute simple aggregates from quiz data.
       </p>
-      <pre id="hr-metrics" style="max-height:260px;overflow:auto;background:rgba(0,0,0,0.45);padding:10px;border-radius:10px;"></pre>
+      <pre id="hr-metrics" class="code-box"></pre>
     </div>
   </main>
 
@@ -30,23 +33,13 @@
       if (!Array.isArray(scores) || scores.length === 0) {
         return { total_submissions: 0 };
       }
-      const byModule = {};
-      for (const s of scores) {
-        const m = s.module || "unknown";
-        if (!byModule[m]) byModule[m] = { count: 0, sum: 0 };
-        byModule[m].count += 1;
-        byModule[m].sum += Number(s.score || 0);
-      }
-      const modules = {};
-      for (const [m, v] of Object.entries(byModule)) {
-        modules[m] = {
-          submissions: v.count,
-          avg_score: v.sum / v.count
-        };
-      }
+      const total = scores.length;
+      let correct = 0;
+      scores.forEach(s => { if (s.score === "1") correct += 1; });
       return {
-        total_submissions: scores.length,
-        modules
+        total_submissions: total,
+        correct_answers: correct,
+        correct_ratio: (correct / total).toFixed(2)
       };
     }
 
@@ -54,7 +47,8 @@
       .then(r => r.json())
       .then(data => {
         const metrics = computeMetrics(data);
-        document.getElementById("hr-metrics").innerText = JSON.stringify(metrics, null, 2);
+        document.getElementById("hr-metrics").innerText =
+          JSON.stringify(metrics, null, 2);
       })
       .catch(() => {
         document.getElementById("hr-metrics").innerText = "No data available yet.";

@@ -7,8 +7,11 @@
 </head>
 <body class="page">
   <header>
-    <div class="brand">LESIBYTES</div>
-    <div class="tagline">REMODELING EXCELLENCE · CYBER AWARENESS</div>
+    <img src="LesiBytes-Logo.png" class="lb-logo-small" alt="LesiBytes logo">
+    <div>
+      <div class="brand">LESIBYTES</div>
+      <div class="tagline">Unified AIOps & Awareness</div>
+    </div>
   </header>
 
   <main class="main">
@@ -28,90 +31,26 @@
           <div class="pill">Cisco / network integrated</div>
         </div>
 
-        <button class="btn" onclick="window.location.href="login.html"">
+        <button class="btn" onclick="window.location.href='login.html'">
           Enter Portal
         </button>
-        <button class="btn secondary" onclick="goDashboard()">
-          View My Progress
-        </button>
       </div>
 
-      <div class="hero-video">
-        <!-- Lightweight embedded awareness video -->
-        <iframe
-          src="https://www.youtube.com/embed/JpfEBQn2CjM"
-          title="Cyber Security Awareness"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen>
-        </iframe>
-      </div>
-    </section>
-
-    <div class="section-title">Role-based spaces</div>
-    <section class="card">
-      <p style="margin-bottom:14px;">
-        After login, users land in their own view. Below is how we segment the experience.
-      </p>
-      <div class="role-grid">
-        <div class="card">
-          <h3>Admin & Superusers</h3>
-          <p>
-            Full view of ecosystem health, AIOps signals and awareness metrics.
-            Ideal for senior leadership and platform owners.
-          </p>
-          <button class="btn secondary" onclick="location.href='dashboard.html'">
-            Sample Admin View
-          </button>
-        </div>
-
-        <div class="card">
-          <h3>HR Insights</h3>
-          <p>
-            Track engagement, completion and risk trends per department.
-            Exportable metrics for performance reviews and compliance.
-          </p>
-          <button class="btn secondary" onclick="location.href='hr-dashboard.html'">
-            HR Metrics Preview
-          </button>
-        </div>
-
-        <div class="card">
-          <h3>IT & Operations</h3>
-          <p>
-            Link user behaviour with incidents, alerts and AIOps findings.
-            See which teams click phishing, reuse passwords, or ignore alerts.
-          </p>
-          <button class="btn secondary" onclick="location.href='it-dashboard.html'">
-            IT Operations View
-          </button>
-        </div>
-
-        <div class="card">
-          <h3>End-User Academy</h3>
-          <p>
-            Short, interactive modules, quizzes and simulations that work on
-            mobile or desktop. No jargon, just practical habits.
-          </p>
-          <button class="btn secondary" onclick="location.href='awareness.html'">
-            Explore Modules
-          </button>
+      <div class="hero-right">
+        <div class="glass-panel">
+          <h3>Snapshot</h3>
+          <p>See AIOps health and awareness engagement at a glance.</p>
+          <ul>
+            <li>Live ecosystem status</li>
+            <li>User quiz scores & completion</li>
+            <li>HR & IT focused dashboards</li>
+          </ul>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Universal chat widget hook (already backed by chat-widget.js / Rasa) -->
   <div id="chat-widget-container"></div>
   <script src="chat-widget.js"></script>
-
-  <script>
-    // For now we do simple navigation. Later this will read JWT role and redirect.
-    function window.location.href="login.html" {
-      window.location.href = "awareness.html";
-    }
-    function goDashboard() {
-      window.location.href = "dashboard.html";
-    }
-  </script>
 </body>
 </html>
