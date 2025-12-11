@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LesiBytes Unified Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="lb-bg">
+    <!-- Centered login card -->
+    <div class="lb-card">
+      <div class="lb-header">
+        <!-- LesiBytes logo from this folder -->
+        <img src="lesibytes-logo.png" alt="LesiBytes" class="lb-logo" />
+        <h1>LesiBytes Unified Portal</h1>
+        <p class="lb-subtitle">
+          Secure access to AIOps, NetSight / UniSight and Cybersecurity Awareness
+        </p>
+      </div>
+
+      <form id="lb-login-form">
+        <label for="lb-username">Username</label>
+        <input id="lb-username" type="text" autocomplete="username" />
+
+        <label for="lb-password">Password</label>
+        <input id="lb-password" type="password" autocomplete="current-password" />
+
+        <p id="lb-error" class="lb-error"></p>
+
+        <button type="submit" id="lb-submit">Sign In</button>
+      </form>
+
+      <p class="lb-footnote">
+        Access level is determined by your provisioning profile (Admin, Super-User, End-User).
+      </p>
+    </div>
+
+    <!-- Simple animated hero area below the card (public marketing only) -->
+    <div class="lb-hero">
+      <div class="lb-hero-slide slide-1">
+        <h2>Unified AIOps Visibility</h2>
+        <p>Consolidated insights from network, servers, and apps in one ecosystem.</p>
+      </div>
+      <div class="lb-hero-slide slide-2">
+        <h2>Cybersecurity Awareness for Everyone</h2>
+        <p>Engaging training experiences tailored for employees, leaders, and partners.</p>
+      </div>
+      <div class="lb-hero-slide slide-3">
+        <h2>Built in Africa, for the World</h2>
+        <p>LesiBytes brings world-class observability and security to modern networks.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keep existing auth logic -->
+  <script src="auth.js"></script>
+</body>
+</html>

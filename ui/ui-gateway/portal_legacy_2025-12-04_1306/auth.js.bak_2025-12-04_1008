@@ -1,0 +1,70 @@
+async function lbLogin() {
+  const userEl = document.getElementById("lb-username");
+  const passEl = document.getElementById("lb-password");
+
+  if (!userEl || !passEl) {
+    console.error("Login inputs not found in DOM");
+    alert("Login form is not correctly loaded. Please refresh the page.");
+    return;
+  }
+
+  const username = userEl.value.trim();
+  const password = passEl.value;
+
+  if (!username || !password) {
+    alert("Please enter both username and password.");
+    return;
+  }
+
+  try {
+    // 1) Call FastAPI /auth/login exactly like the working curl (form-encoded)
+    const body = new URLSearchParams();
+    body.append("username", username);
+    body.append("password", password);
+
+    const res = await fetch("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString()
+    });
+
+    console.log("Login HTTP status", res.status);
+
+    if (res.status === 401) {
+      alert("Login failed. Please check your credentials.");
+      return;
+    }
+
+    if (!res.ok) {
+      console.error("Login HTTP error", res.status);
+      alert("Login error. Please try again later.");
+      return;
+    }
+
+    const data = await res.json();
+    console.log("Login payload", data);
+
+    const token = data.access_token;
+    const tokenType = data.token_type || "bearer";
+    const effectiveUser = data.username || username;
+    const role = data.role || "user";
+
+    if (!token) {
+      alert("Login failed: no token returned from auth service.");
+      return;
+    }
+
+    // 2) Store JWT + basic profile in localStorage
+    localStorage.setItem("lb_jwt", token);
+    localStorage.setItem("lb_jwt_type", tokenType);
+    localStorage.setItem("lb_username", effectiveUser);
+    localStorage.setItem("lb_role", role);
+
+    // 3) For now: confirm success and go to main portal root
+    alert("Login successful for " + effectiveUser + " (" + role + ")");
+    window.location.href = "/";
+  } catch (e) {
+    console.error("Login exception", e);
+    alert("Login error. Please try again later.");
+  }
+}

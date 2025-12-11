@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LesiBytes Portal – Cybersecurity Awareness</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="portal-shell enduser-theme">
+    <header class="portal-header">
+      <div class="portal-logo">
+        <img src="lesibytes-logo.png" alt="LesiBytes Logo">
+      </div>
+      <div class="portal-title">
+        <h1>Cybersecurity Awareness & Training</h1>
+        <p>Guidance to keep you and the organisation safe.</p>
+      </div>
+      <div class="portal-user">
+        <span id="userBadge"></span>
+        <button id="logoutBtn">Logout</button>
+      </div>
+    </header>
+
+    <main class="portal-main">
+      <section class="portal-section">
+        <h2>Your Security Journey</h2>
+        <p>This page will host interactive modules, quizzes and simulations.</p>
+        <div class="card-grid">
+          <div class="app-card">
+            <h3>Phishing Basics</h3>
+            <p>Learn how to spot suspicious emails and links.</p>
+          </div>
+          <div class="app-card">
+            <h3>Password Hygiene</h3>
+            <p>Understand how to create and manage strong passwords.</p>
+          </div>
+          <div class="app-card">
+            <h3>Safe Browsing</h3>
+            <p>Tips for safe browsing across devices.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const username = localStorage.getItem("aiops_username") || "Guest";
+      const badge = document.getElementById("userBadge");
+      if (badge) {
+        badge.textContent = username;
+      }
+
+      const logoutBtn = document.getElementById("logoutBtn");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", function () {
+          localStorage.clear();
+          window.location.href = "/portal/login.html";
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

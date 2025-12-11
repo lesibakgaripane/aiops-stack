@@ -1,0 +1,79 @@
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("loginForm");
+  const errorEl = document.getElementById("error");
+
+  function mapRoleToGroup(username, backendRole) {
+    const u = (username || "").toLowerCase();
+    const r = (backendRole || "").toLowerCase();
+
+    // Hard mapping for you:
+    if (u === "lesiba") return "Super-Admin";       // your main account
+    if (u === "superadmin" || r === "super-admin") return "Super-Admin";
+    if (u === "admin" || r === "admin")            return "Admin";
+    if (u === "superuser" || r === "super-user")   return "Super-User";
+
+    // Default for everyone else
+    return "End-User";
+  }
+
+  function redirectForGroup(group) {
+    switch (group) {
+      case "Super-Admin":
+        window.location.href = "/portal/superadmin.html";
+        break;
+      case "Admin":
+        window.location.href = "/portal/admin.html";
+        break;
+      case "Super-User":
+        window.location.href = "/portal/superuser.html";
+        break;
+      default:
+        window.location.href = "/portal/enduser.html";
+        break;
+    }
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorEl.textContent = "";
+
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!username || !password) {
+      errorEl.textContent = "Please enter username and password.";
+      return;
+    }
+
+    try {
+      const resp = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!resp.ok) {
+        errorEl.textContent = "Invalid username or password.";
+        return;
+      }
+
+      const data = await resp.json();
+
+      // Store token + metadata for dashboards
+      if (data.access_token) {
+        localStorage.setItem("aiops_token", data.access_token);
+      }
+      localStorage.setItem("aiops_username", data.username || username);
+      localStorage.setItem("aiops_backend_role", data.role || "");
+
+      // Map to portal group and redirect
+      const group = mapRoleToGroup(data.username || username, data.role);
+      localStorage.setItem("aiops_group", group);
+
+      redirectForGroup(group);
+    } catch (err) {
+      console.error(err);
+      errorEl.textContent = "Unable to reach login service.";
+    }
+  });
+});

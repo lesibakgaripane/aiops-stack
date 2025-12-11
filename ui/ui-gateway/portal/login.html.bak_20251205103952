@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LesiBytes Unified Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="lb-bg">
+    <div class="lb-card">
+
+      <div class="lb-header">
+        <!-- LesiBytes logo – file already exists in portal/ -->
+        <img src="lesibytes-logo.png" alt="LesiBytes" class="lb-logo" />
+        <h1>LesiBytes Unified Portal</h1>
+        <p class="lb-subtitle">Sign in with your provisioned account</p>
+      </div>
+
+      <form id="lb-login-form">
+        <label for="lb-username">Username</label>
+        <input id="lb-username" type="text" autocomplete="username" />
+
+        <label for="lb-password">Password</label>
+        <input id="lb-password" type="password" autocomplete="current-password" />
+
+        <p id="lb-error" class="lb-error"></p>
+
+        <button type="submit" id="lb-submit">Sign In</button>
+      </form>
+
+      <p class="lb-footnote">
+        Access level (role) is determined by your provisioning profile and stored
+        in the backend database. No role selection is needed at login.
+      </p>
+
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+</body>
+</html>

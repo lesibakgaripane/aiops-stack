@@ -1,0 +1,119 @@
+/* Global page background */
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #050019, #010005);
+  color: #f9fafb;
+}
+
+/* Centered layout */
+.lb-bg {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: radial-gradient(circle at center, #12002f, #020013);
+}
+
+/* Card container */
+.lb-card {
+  width: 440px;
+  max-width: 100%;
+  background: radial-gradient(circle at top left, #040718, #020012);
+  border-radius: 28px;
+  padding: 2.7rem 3rem;
+  box-shadow:
+    0 0 45px rgba(255, 0, 200, 0.2),
+    0 0 30px rgba(6, 182, 212, 0.25);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+}
+
+/* Header + logo */
+.lb-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.lb-logo {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  margin-bottom: 1rem;
+  filter:
+    drop-shadow(0 0 18px rgba(236, 72, 153, 0.8))
+    drop-shadow(0 0 10px rgba(56, 189, 248, 0.7));
+}
+
+.lb-subtitle {
+  margin-top: 0.25rem;
+  color: #c7d2fe;
+  opacity: 0.9;
+}
+
+/* Form controls */
+label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #e5e7eb;
+  font-size: 0.93rem;
+}
+
+input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.2rem;
+  border-radius: 14px;
+  border: 1px solid #3b0764;
+  background: #020617;
+  color: #f9fafb;
+}
+
+input:focus {
+  outline: none;
+  border-color: #e879f9;
+  box-shadow: 0 0 0 2px rgba(232, 121, 249, 0.45);
+}
+
+/* Submit button */
+#lb-submit {
+  width: 100%;
+  padding: 0.9rem;
+  margin-top: 0.3rem;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.98rem;
+  background: linear-gradient(135deg, #06b6d4, #22c55e, #a855f7);
+  color: #020617;
+}
+
+#lb-submit:hover {
+  filter: brightness(1.08);
+}
+
+/* Error message */
+.lb-error {
+  display: none;
+  margin-top: -0.3rem;
+  margin-bottom: 1rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 12px;
+  background: rgba(127, 29, 29, 0.8);
+  color: #fee2e2;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.lb-error.visible {
+  display: block;
+}
+
+/* Footnote */
+.lb-footnote {
+  margin-top: 1.4rem;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  text-align: center;
+}

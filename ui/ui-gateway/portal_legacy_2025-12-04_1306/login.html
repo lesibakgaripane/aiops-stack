@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LesiBytes Portal Login</title>
+  <link rel="stylesheet" href="portal.css">
+</head>
+<body class="page">
+  <header>
+    <img src="LesiBytes-Logo.png" class="lb-logo-main" alt="LesiBytes logo">
+    <div>
+      <div class="brand">LESIBYTES</div>
+      <div class="tagline">Unified AIOps & awareness space</div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="card">
+      <h2>Welcome to the LesiBytes cyber portal</h2>
+      <p>Sign in to access your AIOps & awareness space.</p>
+
+      <label>Username / Email</label><br>
+      <input id="lb-username" type="text" placeholder="you@company.com"
+             style="width:100%;padding:10px;border-radius:10px;border:none;margin:6px 0 14px;"><br>
+
+      <label>Password</label><br>
+      <input id="lb-password" type="password" placeholder="••••••••"
+             style="width:100%;padding:10px;border-radius:10px;border:none;margin:6px 0 18px;"><br>
+
+      <button class="btn" onclick="lbLogin()">Sign in</button>
+    </div>
+  </main>
+
+  <script>
+    async function lbLogin() {
+      const usernameInput = document.getElementById("lb-username");
+      const passwordInput = document.getElementById("lb-password");
+
+      if (!usernameInput || !passwordInput) {
+        console.error("Login inputs not found in DOM");
+        alert("Login form is not correctly loaded. Please refresh the page.");
+        return;
+      }
+
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!username || !password) {
+        alert("Please enter both username and password.");
+        return;
+      }
+
+      try {
+        // EXACT same pattern as your working curl:
+        //   curl -X POST /auth/login -H "Content-Type: application/x-www-form-urlencoded" -d "username=...&password=..."
+        const body = new URLSearchParams();
+        body.append("username", username);
+        body.append("password", password);
+
+        const resp = await fetch("/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: body
+        });
+
+        if (resp.status === 401) {
+          alert("Login failed. Please check your credentials.");
+          return;
+        }
+
+        if (!resp.ok) {
+          alert("Login error. Please try again later.");
+          return;
+        }
+
+        const data = await resp.json(); // { access_token, token_type, username, role }
+
+        if (!data || !data.access_token) {
+          alert("Login error: invalid response from server.");
+          return;
+        }
+
+        // Store token & user info (backend DB is still the source of truth)
+        window.localStorage.setItem("lb_token", data.access_token);
+        window.localStorage.setItem("lb_username", data.username || username);
+        window.localStorage.setItem("lb_role", data.role || "");
+
+        // Redirect to unified portal on port 80 (your main web UI)
+        const host = window.location.hostname; // e.g. 192.168.206.136
+        window.location.href = "http://" + host + "/";
+      } catch (err) {
+        console.error("Login error:", err);
+        alert("Login error. Please try again later.");
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Super-User Workspace</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="role-superuser">
+  <header class="portal-header">
+    <h1>Super-User Workspace</h1>
+    <div class="user-info">
+      <span id="userName"></span> • <span id="userGroup"></span>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main class="portal-grid">
+    <section class="card">
+      <h2>Daily AIOps Tools</h2>
+      <ul>
+        <li><a href="http://localhost:8081" target="_blank">Zabbix for incident triage</a></li>
+        <li><a href="http://localhost:8000" target="_blank">LibreNMS for network health</a></li>
+        <li><a href="http://localhost:5601" target="_blank">Kibana for log deep-dive</a></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>AI & ChatOps</h2>
+      <ul>
+        <li>Access AIOps Chat Assistant in the main portal (future embed)</li>
+        <li>Run RCA and guided troubleshooting flows</li>
+        <li>Trigger anomaly investigations</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Security-Aware Operations</h2>
+      <p>Super-Users see operational views plus security-focused alerts (future wiring):</p>
+      <ul>
+        <li>Correlate performance + security incidents</li>
+        <li>View noisy endpoints and risky behaviours</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    function populateUser() {
+      const u = localStorage.getItem("aiops_username") || "unknown";
+      const g = localStorage.getItem("aiops_group") || "Super-User";
+      document.getElementById("userName").textContent = u;
+      document.getElementById("userGroup").textContent = g;
+    }
+    function logout() {
+      localStorage.removeItem("aiops_token");
+      localStorage.removeItem("aiops_username");
+      localStorage.removeItem("aiops_backend_role");
+      localStorage.removeItem("aiops_group");
+      window.location.href = "/portal/login.html";
+    }
+    document.addEventListener("DOMContentLoaded", populateUser);
+  </script>
+</body>
+</html>

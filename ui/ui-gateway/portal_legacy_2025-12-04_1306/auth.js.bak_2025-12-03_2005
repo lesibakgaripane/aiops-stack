@@ -1,0 +1,60 @@
+async function lbLogin() {
+  const usernameInput = document.getElementById("lb-username");
+  const passwordInput = document.getElementById("lb-password");
+
+  if (!usernameInput || !passwordInput) {
+    console.error("Login inputs not found in DOM");
+    alert("Login form is not correctly loaded. Please refresh the page.");
+    return;
+  }
+
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value;
+
+  if (!username || !password) {
+    alert("Please enter both username and password.");
+    return;
+  }
+
+  try {
+    // EXACTLY like your working curl: POST /auth/login, form-encoded
+    const body = new URLSearchParams();
+    body.append("username", username);
+    body.append("password", password);
+
+    const resp = await fetch("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body
+    });
+
+    if (resp.status === 401) {
+      alert("Login failed. Please check your credentials.");
+      return;
+    }
+
+    if (!resp.ok) {
+      alert("Login error. Please try again later.");
+      return;
+    }
+
+    const data = await resp.json(); // { access_token, token_type, username, role }
+
+    if (!data || !data.access_token) {
+      alert("Login error: invalid response from server.");
+      return;
+    }
+
+    // Save token + user info for later
+    window.localStorage.setItem("lb_token", data.access_token);
+    window.localStorage.setItem("lb_username", data.username || username);
+    window.localStorage.setItem("lb_role", data.role || "");
+
+    // Redirect into unified portal on port 80
+    const host = window.location.hostname;   // e.g. 192.168.206.136
+    window.location.href = "http://" + host + "/";
+  } catch (err) {
+    console.error("Login error:", err);
+    alert("Login error. Please try again later.");
+  }
+}

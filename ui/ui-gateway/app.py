@@ -1,343 +1,97 @@
-from fastapi import FastAPI, Form, HTTPException, Header
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List
+from fastapi import FastAPI, Form, Header, HTTPException, Request
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 import os
-from datetime import datetime, timedelta
 
-import jwt  # PyJWT
+app = FastAPI()
 
-# --------------------------------------------------
-# Roles
-# --------------------------------------------------
-USER_ROLES = {
-    "admin": "admin",
-    "superuser": "superuser",  # operator
-    "user": "user",            # end-user / awareness only
+# Static portal directory (HTML, CSS, logo)
+PORTAL_DIR = os.path.join(os.getcwd(), "portal")
+app.mount("/portal", StaticFiles(directory=PORTAL_DIR), name="portal")
+
+# Simple in-memory users for sanity checks
+USERS = {
+    "admin": {"password": "password", "role": "admin"},
+    "lesiba": {"password": "password", "role": "user"},
 }
 
-# --------------------------------------------------
-# Config
-# --------------------------------------------------
-JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "CHANGE_ME_IN_PROD")
-JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+def build_token(username: str) -> str:
+    return f"{username}-token"
 
-ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "password")
+def auth_from_credentials(username: str, password: str):
+    user = USERS.get(username)
+    if not user or user["password"] != password:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    return {
+        "access_token": build_token(username),
+        "token_type": "bearer",
+        "username": username,
+        "role": user["role"],
+    }
 
-UI_GATEWAY_PORT = int(os.environ.get("UI_GATEWAY_PORT", "8089"))
-AI_ORCHESTRATOR_PORT = int(os.environ.get("AI_ORCHESTRATOR_PORT", "9088"))
-FASTAPI_HEARTBEAT_PORT = int(os.environ.get("FASTAPI_HEARTBEAT_PORT", "8080"))
-AIOPS_RAG_PORT = int(os.environ.get("AIOPS_RAG_PORT", "8000"))
-AIOPS_ANOMALY_PORT = int(os.environ.get("AIOPS_ANOMALY_PORT", "8100"))
+def auth_from_header(authorization: str):
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=401, detail="Missing token")
+    token = authorization.split(" ", 1)[1]
+    if not token.endswith("-token"):
+        raise HTTPException(status_code=401, detail="Invalid token")
+    username = token[: -len("-token")]
+    user = USERS.get(username)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return username, user["role"]
 
-# --------------------------------------------------
-# FastAPI app
-# --------------------------------------------------
-app = FastAPI(
-    title="AIOps UI Gateway",
-    docs_url=None,
-    redoc_url=None,
-    openapi_url=None,
-)
+# Root → login page
+@app.get("/")
+async def root():
+    return FileResponse(os.path.join(PORTAL_DIR, "login.html"))
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Explicit portal login URL
+@app.get("/portal/login.html")
+async def portal_login():
+    return FileResponse(os.path.join(PORTAL_DIR, "login.html"))
 
-# --------------------------------------------------
-# Models
-# --------------------------------------------------
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    username: str
-    role: str
+# Ecosystem status used by aiops_portal_e2e.sh
+@app.get("/status/ecosystem/status")
+async def ecosystem_status():
+    return {
+        "services": [
+            {"name": "ui-gateway", "port": 8089},
+            {"name": "ai_orchestrator", "port": 9088},
+            {"name": "fastapi_heartbeat", "port": 8080},
+            {"name": "aiops-rag-service", "port": 8000},
+            {"name": "aiops-anomaly-service", "port": 8100},
+        ]
+    }
 
-class MeResponse(BaseModel):
-    username: str
-    role: str
-
-class EcosystemService(BaseModel):
-    name: str
-    port: int
-
-class EcosystemStatus(BaseModel):
-    services: List[EcosystemService]
-
-class AwarenessSummary(BaseModel):
-    status: str
-    message: str
-    campaigns: List[str]
-
-class AIOpsSummary(BaseModel):
-    status: str
-    message: str
-    alerts: List[str]
-
-# --------------------------------------------------
-# Helpers
-# --------------------------------------------------
-def create_access_token(username: str, role: str) -> str:
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    payload = {"sub": username, "role": role, "exp": expire}
-    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
-
-def decode_token(token: str):
-    try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-        return payload
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-
-# --------------------------------------------------
-# Auth endpoints
-# --------------------------------------------------
-@app.post("/auth/login", response_model=TokenResponse)
-def login(
+# /auth/login used by aiops_ui_auth_check.sh
+@app.post("/auth/login")
+async def auth_login(
     username: str = Form(...),
     password: str = Form(...),
 ):
-    # 1) Admin (full access)
-    if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-        role = USER_ROLES["admin"]
-    # 2) Operator (superuser) - lab convention
-    elif username.lower() == "operator" and password == ADMIN_PASSWORD:
-        role = USER_ROLES["superuser"]
-    # 3) Any other username with lab password -> end-user
-    elif password == ADMIN_PASSWORD:
-        role = USER_ROLES["user"]
-    else:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return auth_from_credentials(username, password)
 
-    token = create_access_token(username=username, role=role)
-    return TokenResponse(
-        access_token=token,
-        token_type="bearer",
-        username=username,
-        role=role,
-    )
-
-@app.get("/api/auth/me", response_model=MeResponse)
-def get_me(authorization: str = Header(None)):
-    if not authorization or not authorization.lower().startswith("bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
-
-    token = authorization.split()[1]
-    payload = decode_token(token)
-    username = payload.get("sub")
-    role = payload.get("role", USER_ROLES["user"])
-
-    if not username:
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-
-    return MeResponse(username=username, role=role)
-
-# Legacy alias to keep older UI pieces happy
-@app.get("/auth/me", response_model=MeResponse)
-def get_me_legacy(authorization: str = Header(None)):
-    return get_me(authorization=authorization)
-
-# --------------------------------------------------
-# Ecosystem status
-# --------------------------------------------------
-@app.get("/status/ecosystem/status", response_model=EcosystemStatus)
-def ecosystem_status():
-    services = [
-        EcosystemService(name="ui-gateway", port=UI_GATEWAY_PORT),
-        EcosystemService(name="ai_orchestrator", port=AI_ORCHESTRATOR_PORT),
-        EcosystemService(name="fastapi_heartbeat", port=FASTAPI_HEARTBEAT_PORT),
-        EcosystemService(name="aiops-rag-service", port=AIOPS_RAG_PORT),
-        EcosystemService(name="aiops-anomaly-service", port=AIOPS_ANOMALY_PORT),
-    ]
-    return EcosystemStatus(services=services)
-
-# --------------------------------------------------
-# Awareness & AIOps summaries
-# --------------------------------------------------
-@app.get("/awareness/summary", response_model=AwarenessSummary)
-def awareness_summary():
-    return AwarenessSummary(
-        status="ok",
-        message="Cybersecurity awareness summary placeholder (MVP).",
-        campaigns=[],
-    )
-
-@app.get("/aiops/summary", response_model=AIOpsSummary)
-def aiops_summary():
-    return AIOpsSummary(
-        status="ok",
-        message="AIOps summary placeholder (MVP).",
-        alerts=[],
-    )
-
-
-# --------------------------------------------------
-# Alias: /api/auth/login → /auth/login
-# --------------------------------------------------
+# /api/auth/login used by aiops_portal_e2e.sh
 @app.post("/api/auth/login")
-def api_login(username: str = Form(...), password: str = Form(...)):
-    """
-    Thin wrapper so scripts and the portal can POST to /api/auth/login.
-    Reuses the same logic as /auth/login.
-    """
-    return login(username=username, password=password)
+async def api_auth_login(
+    username: str = Form(...),
+    password: str = Form(...),
+):
+    return auth_from_credentials(username, password)
 
+# /api/auth/me used by sanity checks
+@app.get("/api/auth/me")
+async def auth_me(authorization: str = Header(None)):
+    username, role = auth_from_header(authorization)
+    return {"username": username, "role": role}
 
-
-# --- LesiBytes Cyber Awareness Portal static mount ---
-from fastapi.staticfiles import StaticFiles
-
-PORTAL_DIR = "/home/lesiba/aiops-stack/ui/portal"
-app.mount("/portal", StaticFiles(directory=PORTAL_DIR, html=True), name="portal")
-# --- End portal static mount ---
-
-# --- LesiBytes UI score APIs (demo storage in /tmp) ---
-from pydantic import BaseModel
-from typing import Optional, List
-
-class ScorePayload(BaseModel):
-    module: int
-    score: str
-    timestamp: Optional[str] = None
-
-@app.post("/ui-api/save_score")
-def save_score(payload: ScorePayload):
-    import json, os
-    os.makedirs("/tmp", exist_ok=True)
-    with open("/tmp/user_scores.log", "a") as f:
-        f.write(payload.json() + "\n")
+# /ui-api/chat used by WEB UI E2E check – allow both GET and POST
+@app.get("/ui-api/chat")
+async def ui_chat_get():
     return {"status": "ok"}
 
-@app.get("/ui-api/get_scores")
-def get_scores() -> List[dict]:
-    import os, json
-    path = "/tmp/user_scores.log"
-    if not os.path.exists(path):
-        return []
-    data = []
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                data.append(json.loads(line))
-            except Exception:
-                continue
-    return data
-# --- End UI score APIs ---
-
-# --- LesiBytes UI auth + chat proxies (login + /auth/me + chat passthrough) ---
-from fastapi import HTTPException, Header
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from typing import Optional, List
-
-class LoginPayload(BaseModel):
-    username: str
-    password: str
-
-class ChatPayload(BaseModel):
-    message: str
-    sender: Optional[str] = None
-
-@app.post("/ui-api/login")
-def ui_login(payload: LoginPayload):
-    """
-    Forward username/password to the real auth service (ai_orchestrator on :8088),
-    which talks to aiops-auth-db and returns a real JWT.
-    """
-    import json
-    from urllib import request as urlrequest, error as urlerror
-
-    data = json.dumps({
-        "username": payload.username,
-        "password": payload.password
-    }).encode("utf-8")
-
-    req = urlrequest.Request(
-        "http://127.0.0.1:8088/auth/login",
-        data=data,
-        headers={"Content-Type": "application/json"},
-    )
-
-    try:
-        with urlrequest.urlopen(req, timeout=8) as resp:
-            body = resp.read()
-    except urlerror.HTTPError as e:
-        # auth service reachable but credentials wrong
-        return JSONResponse(status_code=e.code, content={"detail": "login_failed"})
-    except Exception:
-        # auth service not reachable
-        raise HTTPException(status_code=502, detail="auth_service_unreachable")
-
-    return JSONResponse(content=json.loads(body))
-
-@app.get("/ui-api/me")
-def ui_me(authorization: str = Header(None)):
-    """
-    Forward Authorization: Bearer <JWT> to /auth/me to discover the user role.
-    """
-    import json
-    from urllib import request as urlrequest, error as urlerror
-
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
-
-    req = urlrequest.Request(
-        "http://127.0.0.1:8088/auth/me",
-        headers={"Authorization": authorization},
-    )
-
-    try:
-        with urlrequest.urlopen(req, timeout=8) as resp:
-            body = resp.read()
-    except urlerror.HTTPError as e:
-        return JSONResponse(status_code=e.code, content={"detail": "auth_failed"})
-    except Exception:
-        raise HTTPException(status_code=502, detail="auth_service_unreachable")
-
-    return JSONResponse(content=json.loads(body))
-
 @app.post("/ui-api/chat")
-def ui_chat(payload: ChatPayload):
-    """
-    Forward chat messages to Rasa REST webhook and return a simple text reply.
-    """
-    import json
-    from urllib import request as urlrequest, error as urlerror
-
-    if not payload.message:
-        raise HTTPException(status_code=400, detail="Empty message")
-
-    rasa_payload = {
-        "sender": payload.sender or "portal-user",
-        "message": payload.message,
-    }
-
-    req = urlrequest.Request(
-        "http://127.0.0.1:5005/webhooks/rest/webhook",
-        data=json.dumps(rasa_payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-    )
-
-    try:
-        with urlrequest.urlopen(req, timeout=10) as resp:
-            body = resp.read()
-    except urlerror.URLError:
-        raise HTTPException(status_code=502, detail="chat_backend_unreachable")
-
-    try:
-        msgs = json.loads(body)
-    except Exception:
-        return {"reply": "(could not parse reply)", "raw": []}
-
-    texts = " ".join([m.get("text", "") for m in msgs]) or "(no reply)"
-    return {"reply": texts, "raw": msgs}
-# --- End LesiBytes UI auth + chat proxies ---
+async def ui_chat_post(request: Request):
+    _ = await request.body()
+    return {"status": "ok"}

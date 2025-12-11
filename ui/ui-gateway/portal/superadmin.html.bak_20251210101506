@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Super-Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Super-Admin Dashboard</h1>
+  <p>Full visibility and control over the AIOps and Cybersecurity Awareness ecosystem.</p>
+</body>
+</html>

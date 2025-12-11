@@ -1,0 +1,19 @@
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+import os
+
+app = FastAPI()
+
+PORTAL_DIR = os.path.join(os.getcwd(), "portal")
+
+# serve /portal/* files directly from disk
+app.mount("/portal", StaticFiles(directory=PORTAL_DIR), name="portal")
+
+@app.get("/portal/login.html")
+async def portal_login():
+    return FileResponse(os.path.join(PORTAL_DIR, "login.html"))
+
+@app.get("/")
+async def root():
+    return FileResponse(os.path.join(PORTAL_DIR, "login.html"))

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>End-User Cybersecurity Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Cybersecurity Awareness & Training</h1>
+  <p>Personalised tips, training modules, and awareness scores for everyday users.</p>
+</body>
+</html>

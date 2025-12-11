@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LesiBytes Unified Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Solid square behind logo + tagline -->
+  <div class="logo-panel">
+    <div class="logo">
+      <img src="lesibytes-logo.png" alt="LesiBytes Logo">
+    </div>
+    <div class="tagline">
+      Unified AIOps and Cybersecurity Awareness Portal
+    </div>
+  </div>
+
+  <!-- Login card below -->
+  <div class="login-box">
+    <h2>Sign In</h2>
+    <form id="loginForm">
+      <label for="username">Username</label>
+      <input type="text" id="username" autocomplete="username">
+
+      <label for="password">Password</label>
+      <input type="password" id="password" autocomplete="current-password">
+
+      <button type="submit">Login</button>
+      <p id="error"></p>
+    </form>
+  </div>
+
+  <script>
+  document.getElementById("loginForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const errorEl  = document.getElementById("error");
+
+      errorEl.textContent = "";
+
+      if (!username || !password) {
+          errorEl.textContent = "Please enter both username and password.";
+          return;
+      }
+
+      const params = new URLSearchParams();
+      params.append("username", username);
+      params.append("password", password);
+
+      try {
+          const resp = await fetch("/auth/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: params.toString()
+          });
+
+          if (resp.ok) {
+              const data = await resp.json();
+              if (data && data.access_token) {
+                  // On success, send user to the main React UI
+                  window.location.href = "/";
+              } else {
+                  errorEl.textContent = "Login failed. Please try again.";
+              }
+          } else {
+              errorEl.textContent = "Invalid username or password.";
+          }
+      } catch (err) {
+          console.error(err);
+          errorEl.textContent = "Unable to reach login service.";
+      }
+  });
+  </script>
+</body>
+</html>

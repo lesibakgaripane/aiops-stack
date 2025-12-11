@@ -1,0 +1,84 @@
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  /* Brighter at top so the logo pops, darker towards bottom */
+  background: radial-gradient(circle at 50% 0%, #fdf4ff 0, #a855f7 35%, #3b0d67 100%);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo img {
+  width: 130px;
+  margin-top: 40px;
+}
+
+/* New subtitle under the logo */
+.tagline {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fdf4ff;
+}
+
+.login-box {
+  margin-top: 24px;
+  width: 330px;
+  padding: 25px;
+  border-radius: 12px;
+  background: rgba(25, 0, 45, 0.85);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  text-align: center;
+}
+
+.login-box h2 {
+  margin-top: 0;
+}
+
+label {
+  text-align: left;
+  display: block;
+  margin-top: 12px;
+  font-size: 0.9rem;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 4px;
+  border-radius: 6px;
+  border: 1px solid #a855f7;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+input:focus {
+  outline: none;
+  border-color: #c084fc;
+  box-shadow: 0 0 0 1px #c084fc;
+}
+
+button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 10px;
+  background: #a855f7;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #c084fc;
+}
+
+#error {
+  color: #ff9ca3;
+  margin-top: 8px;
+  min-height: 1.2em;
+}

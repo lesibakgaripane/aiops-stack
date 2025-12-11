@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VM_IP=$(hostname -I | awk '{print $1}')
+
+echo "=============================="
+echo " AIOps WEB UI E2E Check"
+echo " Host: $(hostname)  Time: $(date)"
+echo " VM IP: ${VM_IP}"
+echo "=============================="
+echo
+
+echo "------------------------------------------------------"
+echo "[1) Nginx Service + Port]"
+if systemctl is-active --quiet nginx; then
+  echo "✅ nginx is active"
+else
+  echo "❌ nginx is NOT active"
+fi
+
+if ss -tln | grep -qE 'LISTEN.+:80 '; then
+  echo "✅ port 80 listening"
+else
+  echo "❌ port 80 NOT listening"
+fi
+echo "------------------------------------------------------"
+
+echo "[2) React UI Served]"
+CODE1=$(curl -s -o /tmp/ui_root_local.html -w "%{http_code}" http://127.0.0.1/ || true)
+if [ "$CODE1" = "200" ]; then
+  if ! grep -qi "Welcome to nginx" /tmp/ui_root_local.html 2>/dev/null; then
+    echo "✅ UI root (localhost) (HTTP 200) http://127.0.0.1/"
+    echo "✅ UI root is not default nginx error page"
+  else
+    echo "❌ UI root is default nginx page"
+  fi
+else
+  echo "❌ UI root (localhost) NOT healthy (HTTP ${CODE1}) http://127.0.0.1/"
+fi
+
+CODE2=$(curl -s -o /tmp/ui_root_vm.html -w "%{http_code}" http://${VM_IP}/ || true)
+if [ "$CODE2" = "200" ]; then
+  echo "✅ UI root (network IP) (HTTP 200) http://${VM_IP}/"
+else
+  echo "❌ UI root (network IP) NOT healthy (HTTP ${CODE2}) http://${VM_IP}/"
+fi
+echo "------------------------------------------------------"
+
+echo "[3) Chat Path via ui-gateway (8089)]"
+RESP=$(curl -s -w ' HTTP_CODE:%{http_code}' http://127.0.0.1:8089/ui-api/chat || true)
+CODE=${RESP##*HTTP_CODE:}
+BODY=${RESP% HTTP_CODE:*}
+
+if [ "$CODE" = "200" ]; then
+  echo "✅ /ui-api/chat direct on 8089 healthy (HTTP 200)"
+  echo "---- body ----"
+  echo "$BODY"
+  echo "--------------"
+else
+  echo "❌ /ui-api/chat direct on 8089 NOT healthy (HTTP ${CODE})"
+  echo "---- body ----"
+  echo "$BODY"
+  echo "--------------"
+fi
+echo "------------------------------------------------------"
+
+echo "✅ WEB UI E2E CHECK COMPLETED"

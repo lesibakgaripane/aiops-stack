@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VM_IP=$(hostname -I | awk '{print $1}')
+
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+ok ()  { echo -e "${GREEN}✅ $*${NC}"; }
+bad () { echo -e "${RED}❌ $*${NC}"; }
+
+echo "=============================="
+echo " AIOps WEB UI E2E Check"
+echo " Host: $(hostname)  Time: $(date)"
+echo " VM IP: ${VM_IP}"
+echo "=============================="
+echo
+
+# ------------------------------------------------------
+# [1) Nginx Service + Port]
+# ------------------------------------------------------
+echo "------------------------------------------------------"
+echo "[1) Nginx Service + Port]"
+
+if systemctl is-active --quiet nginx; then
+  ok "nginx is active"
+else
+  bad "nginx is NOT active"
+fi
+
+if ss -lnt | awk '{print $4}' | grep -q ":80$"; then
+  ok "port 80 listening"
+else
+  bad "port 80 NOT listening"
+fi
+
+# ------------------------------------------------------
+# [2) React UI / root page]
+# ------------------------------------------------------
+echo "------------------------------------------------------"
+echo "[2) React UI Served]"
+
+ROOT_LOCAL_CODE=$(curl -s -o /tmp/ui_root_local.html -w "%{http_code}" http://127.0.0.1/ || echo 000)
+ROOT_NET_CODE=$(curl -s -o /tmp/ui_root_net.html   -w "%{http_code}" http://${VM_IP}/ || echo 000)
+
+if [ "$ROOT_LOCAL_CODE" = "200" ]; then
+  ok "UI root (localhost) (HTTP 200) http://127.0.0.1/"
+else
+  bad "UI root (localhost) HTTP $ROOT_LOCAL_CODE"
+fi
+
+if ! grep -q "AIOps Unified Portal" /tmp/ui_root_local.html; then
+  bad "UI root looks like default nginx page"
+else
+  ok "UI root is not default nginx error page"
+fi
+
+if [ "$ROOT_NET_CODE" = "200" ]; then
+  ok "UI root (network IP) (HTTP 200) http://${VM_IP}/"
+else
+  bad "UI root (network IP) HTTP $ROOT_NET_CODE"
+fi
+
+# ------------------------------------------------------
+# [3) Direct Backend Health]
+# ------------------------------------------------------
+echo "------------------------------------------------------"
+echo "[3) Direct Backend Health]"
+
+UI_GW_HEALTH=$(curl -s -w "%{http_code}" http://127.0.0.1:8089/health || echo 000)
+if [ "$UI_GW_HEALTH" = "200" ]; then
+  ok "ui-gateway /health direct returned JSON"
+else
+  bad "ui-gateway /health direct HTTP $UI_GW_HEALTH"
+fi
+
+STATUS_API=$(curl -s -w "%{http_code}" http://127.0.0.1:8080/status/ecosystem/status || echo 000)
+if [ "$STATUS_API" = "200" ]; then
+  ok "status-api /ecosystem/status direct returned JSON"
+else
+  bad "status-api /ecosystem/status direct HTTP $STATUS_API"
+fi
+
+# ------------------------------------------------------
+# [4) Nginx Proxy Status Path]
+# ------------------------------------------------------
+echo "------------------------------------------------------"
+echo "[4) Nginx Proxy Status Path]"
+
+STATUS_PROXY=$(curl -s -w "%{http_code}" http://127.0.0.1/api/status || echo 000)
+if [ "$STATUS_PROXY" = "200" ]; then
+  ok "/api/status via nginx returned JSON"
+else
+  bad "/api/status via nginx HTTP $STATUS_PROXY"
+fi
+
+# ------------------------------------------------------
+# [5) Nginx Proxy Chat Path (new: /ui-api/chat)]
+# ------------------------------------------------------
+echo "------------------------------------------------------"
+echo "[5) Nginx Proxy Chat Path]"
+
+CHAT_RESP="$(curl -s -w "___HTTP_CODE___%{http_code}" \
+  -X POST http://127.0.0.1/ui-api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Hello from WEB UI E2E","sender":"webui-e2e"}' || echo "___HTTP_CODE___000")"
+
+CHAT_CODE="${CHAT_RESP##*___HTTP_CODE___}"
+CHAT_BODY="${CHAT_RESP%___HTTP_CODE___*}"
+
+if [ "$CHAT_CODE" = "200" ] && echo "$CHAT_BODY" | grep -q '"reply"'; then
+  ok "/ui-api/chat via nginx healthy"
+else
+  bad "/ui-api/chat via nginx not healthy"
+  echo "---- body ----"
+  echo "$CHAT_BODY"
+  echo "--------------"
+fi
+
+echo "------------------------------------------------------"
+ok "WEB UI E2E CHECK COMPLETED"

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>End-User Cybersecurity Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="role-enduser">
+  <header class="portal-header">
+    <h1>Cybersecurity Awareness & Training</h1>
+    <div class="user-info">
+      <span id="userName"></span> • <span id="userGroup"></span>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main class="portal-grid">
+    <section class="card">
+      <h2>Your Security Snapshot</h2>
+      <p>This area will show your personal awareness score and risk indicators (future backend).</p>
+      <ul>
+        <li>Recent simulated phishing results</li>
+        <li>Password hygiene score</li>
+        <li>Device / behaviour risk tips</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Training Modules</h2>
+      <ul>
+        <li>Phishing and email safety</li>
+        <li>Safe browsing and social media</li>
+        <li>Remote work and Wi-Fi security</li>
+        <li>Handling sensitive information</li>
+      </ul>
+      <p><em>Links will later point to the real learning content system or LMS.</em></p>
+    </section>
+
+    <section class="card">
+      <h2>Instant Tips</h2>
+      <ul>
+        <li>Think before you click links or open attachments.</li>
+        <li>Use strong, unique passwords and enable MFA.</li>
+        <li>Lock your device when you step away.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>AIOps Chat Assistant</h2>
+      <ul>
+        <li><a href="/" target="_blank">Open AIOps Chat Assistant (new tab)</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    function populateUser() {
+      const u = localStorage.getItem("aiops_username") || "User";
+      const g = localStorage.getItem("aiops_group") || "End-User";
+      document.getElementById("userName").textContent = u;
+      document.getElementById("userGroup").textContent = g;
+    }
+    function logout() {
+      localStorage.removeItem("aiops_token");
+      localStorage.removeItem("aiops_username");
+      localStorage.removeItem("aiops_backend_role");
+      localStorage.removeItem("aiops_group");
+      window.location.href = "/portal/login.html";
+    }
+    document.addEventListener("DOMContentLoaded", populateUser);
+  </script>
+</body>
+</html>

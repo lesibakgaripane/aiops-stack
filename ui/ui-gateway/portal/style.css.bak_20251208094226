@@ -1,0 +1,120 @@
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: #2b0b4a;          /* solid base */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #f9fafb;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Purple gradient blobs ONLY in the background */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 10% 25%, rgba(244, 114, 182, 0.6), transparent 60%),
+    radial-gradient(circle at 90% 30%, rgba(129, 140, 248, 0.55), transparent 60%),
+    radial-gradient(circle at 15% 80%, rgba(236, 72, 153, 0.45), transparent 60%),
+    radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.5), transparent 60%);
+  z-index: 0;
+}
+
+/* Solid square panel for logo + tagline (no gradient here) */
+.logo-panel {
+  margin-top: 40px;
+  padding: 18px 40px 12px;
+  background: #fdf4ff;
+  border-radius: 20px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Bigger logo, similar presence to Cisco header */
+.logo img {
+  width: 190px;
+  height: auto;
+  display: block;
+  margin: 0 auto 8px;
+}
+
+/* New longer tagline */
+.tagline {
+  margin-top: 4px;
+  font-size: 0.78rem;           /* slightly smaller so the full text fits */
+  line-height: 1.3;
+  letter-spacing: 0.14em;       /* reduced spacing to pack text more tightly */
+  text-transform: uppercase;
+  color: #6b21a8;
+}
+
+/* Login card */
+.login-box {
+  margin-top: 30px;
+  width: 330px;
+  padding: 26px 26px 28px;
+  border-radius: 16px;
+  background: #120323;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.7);
+  text-align: left;
+  position: relative;
+  z-index: 1;
+}
+
+.login-box h2 {
+  margin-top: 0;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+label {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.85);
+  color: #f9fafb;
+  outline: none;
+}
+
+input:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.6);
+}
+
+button {
+  width: 100%;
+  margin-top: 18px;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #a855f7;
+  color: #f9fafb;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #c084fc;
+}
+
+#error {
+  margin-top: 10px;
+  min-height: 1.2em;
+  font-size: 0.8rem;
+  color: #fecaca;
+  text-align: center;
+}

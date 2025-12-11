@@ -1,0 +1,7 @@
+services:
+  aiops-chatgpt-bridge:
+    build: ./aiops-chatgpt-bridge
+    container_name: aiops-chatgpt-bridge
+    restart: unless-stopped
+    ports:
+      - "9110:9100"

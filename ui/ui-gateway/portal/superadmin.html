@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LesiBytes Portal – Super Admin</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="portal-shell">
+    <header class="portal-header">
+      <div class="portal-logo">
+        <img src="lesibytes-logo.png" alt="LesiBytes Logo">
+      </div>
+      <div class="portal-title">
+        <h1>LesiBytes Unified Portal</h1>
+        <p>Super-Admin Console – AIOps & Cybersecurity Awareness</p>
+      </div>
+      <div class="portal-user">
+        <span id="userBadge"></span>
+        <button id="logoutBtn">Logout</button>
+      </div>
+    </header>
+
+    <main class="portal-main">
+      <section class="portal-section">
+        <h2>AIOps Ecosystem Overview</h2>
+        <p>Access and supervise the full AIOps stack.</p>
+        <div class="card-grid">
+          <a class="app-card" href="/" target="_blank">
+            <h3>Unified AIOps UI</h3>
+            <p>Launch the main AIOps dashboard (React app).</p>
+          </a>
+          <a class="app-card" href="http://192.168.206.136:8081" target="_blank">
+            <h3>Zabbix</h3>
+            <p>Monitoring and alerting.</p>
+          </a>
+          <a class="app-card" href="http://192.168.206.136:5601" target="_blank">
+            <h3>Kibana</h3>
+            <p>Logs and analytics.</p>
+          </a>
+          <a class="app-card" href="http://192.168.206.136:8000" target="_blank">
+            <h3>LibreNMS</h3>
+            <p>Network monitoring.</p>
+          </a>
+        </div>
+      </section>
+
+      <section class="portal-section">
+        <h2>Cybersecurity Awareness & Training</h2>
+        <p>Manage and preview the awareness experience.</p>
+        <div class="card-grid">
+          <a class="app-card" href="/portal/enduser.html">
+            <h3>End-User Awareness View</h3>
+            <p>Open the standard awareness portal as an end user.</p>
+          </a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const username = localStorage.getItem("aiops_username") || "Unknown";
+      const group = localStorage.getItem("aiops_group") || "Unknown";
+      const badge = document.getElementById("userBadge");
+      if (badge) {
+        badge.textContent = username + " (" + group + ")";
+      }
+
+      const logoutBtn = document.getElementById("logoutBtn");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", function () {
+          localStorage.clear();
+          window.location.href = "/portal/login.html";
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

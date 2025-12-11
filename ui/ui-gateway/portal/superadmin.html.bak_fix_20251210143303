@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Super-Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="role-superadmin">
+  <header class="portal-header">
+    <h1>Super-Admin Dashboard</h1>
+    <div class="user-info">
+      <span id="userName"></span> • <span id="userGroup"></span>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main class="portal-grid">
+    <section class="card">
+      <h2>AIOps Ecosystem Health</h2>
+      <ul>
+        <li><a href="/" target="_blank">Unified Portal Landing</a></li>
+        <li><a href="/status/ecosystem/status" target="_blank">Ecosystem JSON Status</a></li>
+        <li><a href="http://localhost:8081" target="_blank">Zabbix Web (Monitoring)</a></li>
+        <li><a href="http://localhost:8000" target="_blank">LibreNMS (Network Monitoring)</a></li>
+        <li><a href="http://localhost:5601" target="_blank">Kibana (Logs & SIEM View)</a></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Cybersecurity Awareness & Training</h2>
+      <ul>
+        <li><a href="/portal/enduser.html" target="_blank">Preview End-User Cybersecurity Portal</a></li>
+        <li>View organisation awareness scores (future)</li>
+        <li>Manage training campaigns and modules (future)</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>User & Role Management</h2>
+      <p>As Super-Admin, you can manage all users and roles (conceptual PoC layer):</p>
+      <ul>
+        <li>Create / disable users</li>
+        <li>Assign roles: Super-Admin, Admin, Super-User, End-User</li>
+        <li>Configure tenant-level access policies</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>AIOps Chat Assistant</h2>
+      <ul>
+        <li><a href="/" target="_blank">Open AIOps Chat Assistant (new tab)</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    function populateUser() {
+      const u = localStorage.getItem("aiops_username") || "unknown";
+      const g = localStorage.getItem("aiops_group") || "Super-Admin";
+      document.getElementById("userName").textContent = u;
+      document.getElementById("userGroup").textContent = g;
+    }
+    function logout() {
+      localStorage.removeItem("aiops_token");
+      localStorage.removeItem("aiops_username");
+      localStorage.removeItem("aiops_backend_role");
+      localStorage.removeItem("aiops_group");
+      window.location.href = "/portal/login.html";
+    }
+    document.addEventListener("DOMContentLoaded", populateUser);
+  </script>
+</body>
+</html>

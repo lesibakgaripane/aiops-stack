@@ -1,0 +1,558 @@
+from fastapi import FastAPI, Form, HTTPException, Header
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List
+import os
+from datetime import datetime, timedelta
+
+import jwt  # PyJWT
+
+# --------------------------------------------------
+# Roles
+# --------------------------------------------------
+USER_ROLES = {
+    "admin": "admin",
+    "superuser": "superuser",  # operator
+    "user": "user",            # end-user / awareness only
+}
+
+# --------------------------------------------------
+# Config
+# --------------------------------------------------
+JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "CHANGE_ME_IN_PROD")
+JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "password")
+
+UI_GATEWAY_PORT = int(os.environ.get("UI_GATEWAY_PORT", "8089"))
+AI_ORCHESTRATOR_PORT = int(os.environ.get("AI_ORCHESTRATOR_PORT", "9088"))
+FASTAPI_HEARTBEAT_PORT = int(os.environ.get("FASTAPI_HEARTBEAT_PORT", "8080"))
+AIOPS_RAG_PORT = int(os.environ.get("AIOPS_RAG_PORT", "8000"))
+AIOPS_ANOMALY_PORT = int(os.environ.get("AIOPS_ANOMALY_PORT", "8100"))
+
+# --------------------------------------------------
+# FastAPI app
+# --------------------------------------------------
+app = FastAPI(
+    title="AIOps UI Gateway",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --------------------------------------------------
+# Models
+# --------------------------------------------------
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    username: str
+    role: str
+
+class MeResponse(BaseModel):
+    username: str
+    role: str
+
+class EcosystemService(BaseModel):
+    name: str
+    port: int
+
+class EcosystemStatus(BaseModel):
+    services: List[EcosystemService]
+
+class AwarenessSummary(BaseModel):
+    status: str
+    message: str
+    campaigns: List[str]
+
+class AIOpsSummary(BaseModel):
+    status: str
+    message: str
+    alerts: List[str]
+
+# --------------------------------------------------
+# Helpers
+# --------------------------------------------------
+def create_access_token(username: str, role: str) -> str:
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    payload = {"sub": username, "role": role, "exp": expire}
+    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+
+def decode_token(token: str):
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        return payload
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+# --------------------------------------------------
+# Auth endpoints
+# --------------------------------------------------
+@app.post("/auth/login", response_model=TokenResponse)
+def login(
+    username: str = Form(...),
+    password: str = Form(...),
+):
+    # 1) Admin (full access)
+    if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+        role = USER_ROLES["admin"]
+    # 2) Operator (superuser) - lab convention
+    elif username.lower() == "operator" and password == ADMIN_PASSWORD:
+        role = USER_ROLES["superuser"]
+    # 3) Any other username with lab password -> end-user
+    elif password == ADMIN_PASSWORD:
+        role = USER_ROLES["user"]
+    else:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    token = create_access_token(username=username, role=role)
+    return TokenResponse(
+        access_token=token,
+        token_type="bearer",
+        username=username,
+        role=role,
+    )
+
+@app.get("/api/auth/me", response_model=MeResponse)
+def get_me(authorization: str = Header(None)):
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+
+    token = authorization.split()[1]
+    payload = decode_token(token)
+    username = payload.get("sub")
+    role = payload.get("role", USER_ROLES["user"])
+
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token payload")
+
+    return MeResponse(username=username, role=role)
+
+# Legacy alias to keep older UI pieces happy
+@app.get("/auth/me", response_model=MeResponse)
+def get_me_legacy(authorization: str = Header(None)):
+    return get_me(authorization=authorization)
+
+# --------------------------------------------------
+# Ecosystem status
+# --------------------------------------------------
+@app.get("/status/ecosystem/status", response_model=EcosystemStatus)
+def ecosystem_status():
+    services = [
+        EcosystemService(name="ui-gateway", port=UI_GATEWAY_PORT),
+        EcosystemService(name="ai_orchestrator", port=AI_ORCHESTRATOR_PORT),
+        EcosystemService(name="fastapi_heartbeat", port=FASTAPI_HEARTBEAT_PORT),
+        EcosystemService(name="aiops-rag-service", port=AIOPS_RAG_PORT),
+        EcosystemService(name="aiops-anomaly-service", port=AIOPS_ANOMALY_PORT),
+    ]
+    return EcosystemStatus(services=services)
+
+# --------------------------------------------------
+# Awareness & AIOps summaries
+# --------------------------------------------------
+@app.get("/awareness/summary", response_model=AwarenessSummary)
+def awareness_summary():
+    return AwarenessSummary(
+        status="ok",
+        message="Cybersecurity awareness summary placeholder (MVP).",
+        campaigns=[],
+    )
+
+@app.get("/aiops/summary", response_model=AIOpsSummary)
+def aiops_summary():
+    return AIOpsSummary(
+        status="ok",
+        message="AIOps summary placeholder (MVP).",
+        alerts=[],
+    )
+
+
+# --------------------------------------------------
+# Alias: /api/auth/login → /auth/login
+# --------------------------------------------------
+@app.post("/api/auth/login")
+def api_login(username: str = Form(...), password: str = Form(...)):
+    """
+    Thin wrapper so scripts and the portal can POST to /api/auth/login.
+    Reuses the same logic as /auth/login.
+    """
+    return login(username=username, password=password)
+
+
+
+# --- LesiBytes Cyber Awareness Portal static mount ---
+from fastapi.staticfiles import StaticFiles
+
+PORTAL_DIR = "/home/lesiba/aiops-stack/ui/portal"
+app.mount("/portal", StaticFiles(directory=PORTAL_DIR, html=True), name="portal")
+# --- End portal static mount ---
+
+# --- LesiBytes UI score APIs (demo storage in /tmp) ---
+from pydantic import BaseModel
+from typing import Optional, List
+
+class ScorePayload(BaseModel):
+    module: int
+    score: str
+    timestamp: Optional[str] = None
+
+@app.post("/ui-api/save_score")
+def save_score(payload: ScorePayload):
+    import json, os
+    os.makedirs("/tmp", exist_ok=True)
+    with open("/tmp/user_scores.log", "a") as f:
+        f.write(payload.json() + "\n")
+    return {"status": "ok"}
+
+@app.get("/ui-api/get_scores")
+def get_scores() -> List[dict]:
+    import os, json
+    path = "/tmp/user_scores.log"
+    if not os.path.exists(path):
+        return []
+    data = []
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                data.append(json.loads(line))
+            except Exception:
+                continue
+    return data
+# --- End UI score APIs ---
+
+# --- LesiBytes UI auth + chat proxies (login + /auth/me + chat passthrough) ---
+from fastapi import HTTPException, Header
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from typing import Optional, List
+
+class LoginPayload(BaseModel):
+    username: str
+    password: str
+
+class ChatPayload(BaseModel):
+    message: str
+    sender: Optional[str] = None
+
+@app.post("/ui-api/login")
+def ui_login(payload: LoginPayload):
+    """
+    Forward username/password to the real auth service (ai_orchestrator on :8088),
+    which talks to aiops-auth-db and returns a real JWT.
+    """
+    import json
+    from urllib import request as urlrequest, error as urlerror
+
+    data = json.dumps({
+        "username": payload.username,
+        "password": payload.password
+    }).encode("utf-8")
+
+    req = urlrequest.Request(
+        "http://127.0.0.1:8088/auth/login",
+        data=data,
+        headers={"Content-Type": "application/json"},
+    )
+
+    try:
+        with urlrequest.urlopen(req, timeout=8) as resp:
+            body = resp.read()
+    except urlerror.HTTPError as e:
+        # auth service reachable but credentials wrong
+        return JSONResponse(status_code=e.code, content={"detail": "login_failed"})
+    except Exception:
+        # auth service not reachable
+        raise HTTPException(status_code=502, detail="auth_service_unreachable")
+
+    return JSONResponse(content=json.loads(body))
+
+@app.get("/ui-api/me")
+def ui_me(authorization: str = Header(None)):
+    """
+    Forward Authorization: Bearer <JWT> to /auth/me to discover the user role.
+    """
+    import json
+    from urllib import request as urlrequest, error as urlerror
+
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing Authorization header")
+
+    req = urlrequest.Request(
+        "http://127.0.0.1:8088/auth/me",
+        headers={"Authorization": authorization},
+    )
+
+    try:
+        with urlrequest.urlopen(req, timeout=8) as resp:
+            body = resp.read()
+    except urlerror.HTTPError as e:
+        return JSONResponse(status_code=e.code, content={"detail": "auth_failed"})
+    except Exception:
+        raise HTTPException(status_code=502, detail="auth_service_unreachable")
+
+    return JSONResponse(content=json.loads(body))
+
+@app.post("/ui-api/chat")
+def ui_chat(payload: ChatPayload):
+    """
+    Forward chat messages to Rasa REST webhook and return a simple text reply.
+    """
+    import json
+    from urllib import request as urlrequest, error as urlerror
+
+    if not payload.message:
+        raise HTTPException(status_code=400, detail="Empty message")
+
+    rasa_payload = {
+        "sender": payload.sender or "portal-user",
+        "message": payload.message,
+    }
+
+    req = urlrequest.Request(
+        "http://127.0.0.1:5005/webhooks/rest/webhook",
+        data=json.dumps(rasa_payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+    )
+
+    try:
+        with urlrequest.urlopen(req, timeout=10) as resp:
+            body = resp.read()
+    except urlerror.URLError:
+        raise HTTPException(status_code=502, detail="chat_backend_unreachable")
+
+    try:
+        msgs = json.loads(body)
+    except Exception:
+        return {"reply": "(could not parse reply)", "raw": []}
+
+    texts = " ".join([m.get("text", "") for m in msgs]) or "(no reply)"
+    return {"reply": texts, "raw": msgs}
+# --- End LesiBytes UI auth + chat proxies ---
+
+# --- Legacy chat path shim for /api/chat/send ---
+@app.post("/api/chat/send")
+def legacy_chat(payload: ChatPayload, authorization: Optional[str] = Header(None)):
+    """
+    Backwards-compatible endpoint so older checks and UIs calling /api/chat/send
+    still work. It simply delegates to the new /ui-api/chat handler.
+    """
+    return ui_chat(payload, authorization=authorization)
+# --- End legacy chat path shim ---
+
+# --- Portal HTML login page (username + password only, roles from DB) ---
+from fastapi.responses import HTMLResponse
+
+@app.get("/portal/login.html", response_class=HTMLResponse)
+def lesibytes_portal_login():
+    return HTMLResponse(content="""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LesiBytes Portal Login</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #101827, #020617);
+      color: #e5e7eb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .portal-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      padding: 1.5rem;
+    }
+    .portal-card {
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 1.25rem;
+      padding: 2.5rem 2.75rem;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+    .portal-title {
+      font-size: 1.5rem;
+      margin: 0 0 0.4rem 0;
+      font-weight: 600;
+    }
+    .portal-subtitle {
+      margin: 0 0 1.8rem 0;
+      font-size: 0.9rem;
+      color: #9ca3af;
+    }
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 0.35rem;
+      color: #e5e7eb;
+    }
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 0.6rem 0.7rem;
+      border-radius: 0.6rem;
+      border: 1px solid #4b5563;
+      background: rgba(15, 23, 42, 0.9);
+      color: #f9fafb;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5);
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 0.7rem 0.8rem;
+      border-radius: 0.7rem;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #38bdf8, #22c55e);
+      color: #020617;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+    }
+    .btn-primary:hover {
+      filter: brightness(1.05);
+    }
+    .error-message {
+      margin-bottom: 0.6rem;
+      padding: 0.55rem 0.7rem;
+      border-radius: 0.6rem;
+      font-size: 0.8rem;
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.45);
+      color: #fecaca;
+    }
+    .portal-footnote {
+      margin-top: 1.5rem;
+      font-size: 0.78rem;
+      color: #9ca3af;
+      line-height: 1.4;
+    }
+  </style>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("login-form");
+      const errorBox = document.getElementById("error-message");
+
+      const showError = (msg) => {
+        if (!errorBox) return;
+        errorBox.textContent = msg;
+        errorBox.style.display = "block";
+      };
+
+      if (!form) {
+        console.error("Login form not found");
+        return;
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (errorBox) errorBox.style.display = "none";
+
+        const usernameEl = document.getElementById("username");
+        const passwordEl = document.getElementById("password");
+
+        const username = usernameEl ? usernameEl.value.trim() : "";
+        const password = passwordEl ? passwordEl.value : "";
+
+        if (!username || !password) {
+          showError("Please enter both username and password.");
+          return;
+        }
+
+        try {
+          const res = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+          });
+
+          if (!res.ok) {
+            const txt = await res.text();
+            console.error("Login failed:", res.status, txt);
+            showError("Invalid credentials or account not provisioned.");
+            return;
+          }
+
+          const data = await res.json();
+          // Expected: { access_token, token_type, username, role }
+          if (!data.access_token) {
+            showError("Login succeeded but no access token returned.");
+            return;
+          }
+
+          // Persist token + profile; ROLE COMES FROM BACKEND PROVISIONING
+          localStorage.setItem("aiops_token", data.access_token);
+          if (data.username) localStorage.setItem("aiops_username", data.username);
+          if (data.role)     localStorage.setItem("aiops_role", data.role);
+
+          // Redirect into main portal
+          window.location.href = "/";
+        } catch (err) {
+          console.error("Login error:", err);
+          showError("Unable to reach the portal backend. Please try again later.");
+        }
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="portal-wrapper">
+    <div class="portal-card">
+      <h1 class="portal-title">LesiBytes Unified Portal</h1>
+      <p class="portal-subtitle">Sign in with your provisioned account</p>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" autocomplete="username" required />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required />
+        </div>
+
+        <div id="error-message" class="error-message" style="display:none;"></div>
+
+        <button type="submit" class="btn-primary">Sign In</button>
+      </form>
+
+      <p class="portal-footnote">
+        Access level (role) is determined by your provisioning profile and stored in the backend database.
+        No role selection is needed at login.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    """)
+# --- End Portal HTML login page ---

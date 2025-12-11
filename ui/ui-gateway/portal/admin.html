@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LesiBytes Portal – Admin</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="portal-shell">
+    <header class="portal-header">
+      <div class="portal-logo">
+        <img src="lesibytes-logo.png" alt="LesiBytes Logo">
+      </div>
+      <div class="portal-title">
+        <h1>LesiBytes Unified Portal</h1>
+        <p>Admin Console – Operations & Monitoring</p>
+      </div>
+      <div class="portal-user">
+        <span id="userBadge"></span>
+        <button id="logoutBtn">Logout</button>
+      </div>
+    </header>
+
+    <main class="portal-main">
+      <section class="portal-section">
+        <h2>AIOps Applications</h2>
+        <div class="card-grid">
+          <a class="app-card" href="/" target="_blank">
+            <h3>Unified AIOps UI</h3>
+            <p>Day-to-day overview of the ecosystem.</p>
+          </a>
+          <a class="app-card" href="http://192.168.206.136:8081" target="_blank">
+            <h3>Zabbix</h3>
+            <p>Monitor hosts, services and triggers.</p>
+          </a>
+          <a class="app-card" href="http://192.168.206.136:5601" target="_blank">
+            <h3>Kibana</h3>
+            <p>Investigate logs and anomalies.</p>
+          </a>
+        </div>
+      </section>
+
+      <section class="portal-section">
+        <h2>Awareness Portal</h2>
+        <div class="card-grid">
+          <a class="app-card" href="/portal/enduser.html">
+            <h3>End-User Awareness View</h3>
+            <p>Open the standard awareness experience.</p>
+          </a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const username = localStorage.getItem("aiops_username") || "Unknown";
+      const group = localStorage.getItem("aiops_group") || "Unknown";
+      const badge = document.getElementById("userBadge");
+      if (badge) {
+        badge.textContent = username + " (" + group + ")";
+      }
+
+      const logoutBtn = document.getElementById("logoutBtn");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", function () {
+          localStorage.clear();
+          window.location.href = "/portal/login.html";
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
